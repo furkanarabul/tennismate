@@ -127,51 +127,42 @@ const animateSwipe = (direction: 'left' | 'right') => {
 }
 
 const handleLike = async () => {
-  if (isAnimating.value || currentIndex.value >= players.value.length) return
+  if (isAnimating.value || !authStore.user) return
+  
+  const currentPlayer = players.value[currentIndex.value]
+  if (!currentPlayer) return
   
   isAnimating.value = true
-  const direction = 'right'
+  await animateSwipe('right')
   
-  await animateSwipe(direction)
+  const result = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
   
-  if (authStore.user) {
-    const currentPlayer = players.value[currentIndex.value]
-    const isMatch = await swipeUser(
-      authStore.user.id,
-      currentPlayer.id,
-      'like'
-    )
-    
-    if (isMatch) {
-      matchedUser.value = currentPlayer
-      showMatchModal.value = true
-    }
+  if (result?.isMatch) {
+    matchedUser.value = currentPlayer
+    showMatchModal.value = true
   }
   
   // Remove swiped user from array
   players.value.splice(currentIndex.value, 1)
+  
   resetCard()
   isAnimating.value = false
 }
 
 const handlePass = async () => {
-  if (isAnimating.value || currentIndex.value >= players.value.length) return
+  if (isAnimating.value || !authStore.user) return
+  
+  const currentPlayer = players.value[currentIndex.value]
+  if (!currentPlayer) return
   
   isAnimating.value = true
-  const direction = 'left'
+  await animateSwipe('left')
   
-  await animateSwipe(direction)
-  
-  if (authStore.user) {
-    await swipeUser(
-      authStore.user.id,
-      players.value[currentIndex.value].id,
-      'pass'
-    )
-  }
+  await swipeUser(authStore.user.id, currentPlayer.id, 'pass')
   
   // Remove swiped user from array
   players.value.splice(currentIndex.value, 1)
+  
   resetCard()
   isAnimating.value = false
 }
