@@ -11,6 +11,9 @@ export interface UserProfile {
     availability: any[]
     avatar_url: string
     created_at: string
+    latitude?: number | null
+    longitude?: number | null
+    distance?: number // Calculated distance in km
 }
 
 export const useMatching = () => {
@@ -18,9 +21,49 @@ export const useMatching = () => {
     const error = ref<string | null>(null)
 
     /**
-     * Fetch users for discovery (excluding current user and already swiped)
+     * Calculate distance between two coordinates using Haversine formula
+     * @returns distance in kilometers
      */
-    const getDiscoverUsers = async (currentUserId: string, limit = 10): Promise<UserProfile[]> => {
+    const calculateDistance = (
+        lat1: number,
+        lon1: number,
+        lat2: number,
+        lon2: number
+    ): number => {
+        const R = 6371 // Earth's radius in km
+        const toRad = (deg: number) => (deg * Math.PI) / 180
+
+        const dLat = toRad(lat2 - lat1)
+        const dLon = toRad(lon2 - lon1)
+
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) *
+            Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2)
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        const distance = R * c
+
+        return Math.round(distance * 10) / 10 // Round to 1 decimal place
+    }
+
+    /**
+     * Fetch users for discovery (excluding current user and already swiped)
+     * @param currentUserId - Current user's ID
+     * @param userLatitude - Current user's latitude (optional)
+     * @param userLongitude - Current user's longitude (optional)
+     * @param maxDistance - Maximum distance in km (optional, null = no limit)
+     * @param limit - Maximum number of results
+     */
+    const getDiscoverUsers = async (
+        currentUserId: string,
+        userLatitude?: number | null,
+        userLongitude?: number | null,
+        maxDistance?: number | null,
+        limit = 50
+    ): Promise<UserProfile[]> => {
         loading.value = true
         error.value = null
 
@@ -50,9 +93,42 @@ export const useMatching = () => {
 
             if (fetchError) throw fetchError
 
-            return data || []
-        } catch (e: any) {
-            error.value = e.message
+            let users = (data as UserProfile[]) || []
+
+            // Calculate distances if user location is provided
+            if (userLatitude != null && userLongitude != null) {
+                users = users.map(user => {
+                    if (user.latitude != null && user.longitude != null) {
+                        const distance = calculateDistance(
+                            userLatitude,
+                            userLongitude,
+                            user.latitude,
+                            user.longitude
+                        )
+                        return { ...user, distance }
+                    }
+                    return { ...user, distance: undefined }
+                })
+
+                // Filter by max distance if specified
+                if (maxDistance != null) {
+                    users = users.filter(
+                        user => user.distance != null && user.distance <= maxDistance
+                    )
+                }
+
+                // Sort by distance (closest first)
+                users.sort((a, b) => {
+                    if (a.distance == null) return 1
+                    if (b.distance == null) return -1
+                    return a.distance - b.distance
+                })
+            }
+
+            return users
+        } catch (err: any) {
+            console.error('Error fetching discover users:', err)
+            error.value = err.message || 'Failed to fetch users'
             return []
         } finally {
             loading.value = false
