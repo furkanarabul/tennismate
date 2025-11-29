@@ -36,6 +36,37 @@ const userLatitude = ref<number | null>(null)
 const userLongitude = ref<number | null>(null)
 const showLocationPrompt = ref(false)
 
+// Player counts per distance
+const playerCounts = ref<Record<number | string, number>>({})
+const nextBestRange = ref<number | null>(null)
+
+const calculatePlayerCounts = (allPlayers: UserProfile[]) => {
+  if (!userLatitude.value || !userLongitude.value) return
+
+  const ranges = [2, 5, 10, 25, 50]
+  const counts: Record<number | string, number> = { any: allPlayers.length }
+
+  ranges.forEach(range => {
+    counts[range] = allPlayers.filter(p => {
+      if (p.distance == null) return false
+      return p.distance <= range
+    }).length
+  })
+
+  playerCounts.value = counts
+
+  // Find next best range if current is empty
+  if (maxDistance.value && counts[maxDistance.value] === 0) {
+    for (const range of ranges) {
+      if (range > maxDistance.value && counts[range] > 0) {
+        nextBestRange.value = range
+        return
+      }
+    }
+    nextBestRange.value = null // Use "Any" if all are empty
+  }
+}
+
 let draggableInstance: any = null
 
 const loadUsers = async () => {
@@ -65,6 +96,16 @@ const loadUsers = async () => {
       userLongitude.value,
       maxDistance.value
     )
+
+    // Also fetch ALL players to calculate counts
+    const allPlayers = await getDiscoverUsers(
+      authStore.user.id,
+      userLatitude.value,
+      userLongitude.value,
+      null // Get all to count
+    )
+
+    calculatePlayerCounts(allPlayers)
 
     players.value = fetchedPlayers
     currentIndex.value = 0
@@ -280,7 +321,8 @@ onMounted(async () => {
         <!-- Distance Filter (only when location enabled) -->
         <DistanceFilter 
           v-if="userLatitude"
-          v-model="maxDistance" 
+          v-model="maxDistance"
+          :player-counts="playerCounts"
           @update:modelValue="loadUsers"
         />
       </div>
@@ -338,9 +380,27 @@ onMounted(async () => {
 
         <div v-else-if="players.length === 0 || currentIndex >= players.length" class="text-center py-12">
           <Trophy class="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h2 class="text-2xl font-bold mb-2">No More Players</h2>
-          <p class="text-muted-foreground mb-6">You've seen all available players for now.</p>
-          <Button @click="loadUsers">Refresh</Button>
+          
+          <!-- Smart Empty State -->
+          <div v-if="nextBestRange">
+            <h2 class="text-2xl font-bold mb-2">No Players Within {{ maxDistance }} km</h2>
+            <p class="text-muted-foreground mb-4">
+              But there are {{ playerCounts[nextBestRange] || 0 }} players within {{ nextBestRange }} km
+            </p>
+            <Button @click="maxDistance = nextBestRange" class="mb-2">
+              Expand to {{ nextBestRange }} km
+            </Button>
+            <Button @click="loadUsers" variant="outline">
+              Refresh
+            </Button>
+          </div>
+          
+          <!-- Regular Empty State -->
+          <div v-else>
+            <h2 class="text-2xl font-bold mb-2">No More Players</h2>
+            <p class="text-muted-foreground mb-6">You've seen all available players for now.</p>
+            <Button @click="loadUsers">Refresh</Button>
+          </div>
         </div>
 
         <div v-else class="space-y-6">
