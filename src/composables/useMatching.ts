@@ -46,6 +46,11 @@ export const useMatching = () => {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         const distance = R * c
 
+        // Debug log
+        if (distance === 0 && lat1 !== lat2) {
+            console.log('📏 Distance calc:', { lat1, lon1, lat2, lon2, distance })
+        }
+
         return Math.round(distance * 10) / 10 // Round to 1 decimal place
     }
 
@@ -97,6 +102,7 @@ export const useMatching = () => {
 
             // Calculate distances if user location is provided
             if (userLatitude != null && userLongitude != null) {
+                console.log('📍 Calculating distances for user at:', { userLatitude, userLongitude })
                 users = users.map(user => {
                     if (user.latitude != null && user.longitude != null) {
                         const distance = calculateDistance(
