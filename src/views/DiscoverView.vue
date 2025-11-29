@@ -36,7 +36,8 @@ const userLatitude = ref<number | null>(null)
 const userLongitude = ref<number | null>(null)
 const showLocationPrompt = ref(false)
 
-// Player counts per distance
+// Player counts
+const allPlayerDistances = ref<number[]>([])
 const playerCounts = ref<Record<number | string, number>>({})
 const nextBestRange = ref<number | null>(null)
 
@@ -110,6 +111,11 @@ const loadUsers = async () => {
     )
 
     calculatePlayerCounts(allPlayers)
+
+    // Store all distances for client-side filtering
+    allPlayerDistances.value = allPlayers
+      .map(p => p.distance)
+      .filter((d): d is number => d != null)
 
     players.value = fetchedPlayers
     currentIndex.value = 0
@@ -291,16 +297,37 @@ onMounted(async () => {
     return
   }
 
-  // Auto-request location on mount
-  await requestLocation()
-  
-  // If no location after request, show prompt
-  if (!userLatitude.value) {
-    showLocationPrompt.value = true
-    return
+  // Load user profile first to check if they have a saved location
+  try {
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authStore.user.id)
+      .single()
+
+    if (profileData) {
+      userProfile.value = profileData
+      
+      // Check if user has saved location
+      if (profileData.latitude != null && profileData.longitude != null) {
+        userLatitude.value = profileData.latitude
+        userLongitude.value = profileData.longitude
+        console.log('✅ Using saved location from DB:', { 
+          lat: userLatitude.value, 
+          lng: userLongitude.value 
+        })
+        // Load users with saved location
+        await loadUsers()
+        return
+      }
+    }
+  } catch (error) {
+    console.error('Error loading profile:', error)
   }
 
-  await loadUsers()
+  // If no saved location, try to request it
+  console.log('⚠️ No saved location, requesting from browser...')
+  await requestLocation()
 })
 </script>
 
@@ -327,6 +354,7 @@ onMounted(async () => {
           v-if="userLatitude"
           v-model="maxDistance"
           :player-counts="playerCounts"
+          :all-distances="allPlayerDistances"
           @update:modelValue="loadUsers"
         />
       </div>
