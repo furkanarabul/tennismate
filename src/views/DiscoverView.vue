@@ -135,9 +135,9 @@ const handleLike = async () => {
   isAnimating.value = true
   await animateSwipe('right')
   
-  const result = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
+  const isMatch = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
   
-  if (result?.isMatch) {
+  if (isMatch) {
     matchedUser.value = currentPlayer
     showMatchModal.value = true
   }

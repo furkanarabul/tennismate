@@ -48,11 +48,14 @@ const toggleTimeSlot = (day: string, timeSlot: string) => {
     newValue.push({ day, timeSlots: [timeSlot] })
   } else {
     // Day exists, toggle time slot
-    const hasSlot = newValue[daySlotIndex].timeSlots.includes(timeSlot)
+    const daySlot = newValue[daySlotIndex]
+    if (!daySlot) return // Safety check
+    
+    const hasSlot = daySlot.timeSlots.includes(timeSlot)
     if (hasSlot) {
-      newValue[daySlotIndex].timeSlots = newValue[daySlotIndex].timeSlots.filter(t => t !== timeSlot)
+      daySlot.timeSlots = daySlot.timeSlots.filter(t => t !== timeSlot)
     } else {
-      newValue[daySlotIndex].timeSlots.push(timeSlot)
+      daySlot.timeSlots.push(timeSlot)
     }
   }
   
