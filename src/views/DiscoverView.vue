@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Heart, X, MapPin, Trophy, Star, MessageCircle, User } from 'lucide-vue-next'
+import { Heart, X, MapPin, Trophy, Star, MessageCircle, User, Navigation } from 'lucide-vue-next'
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useMatching, type UserProfile } from '@/composables/useMatching'
 import ProfileCompletionBanner from '@/components/ProfileCompletionBanner.vue'
+import DistanceFilter from '@/components/DistanceFilter.vue'
+import { useGeolocation } from '@/composables/useGeolocation'
 import { supabase } from '@/lib/supabase'
 import gsap from 'gsap'
 import { Draggable } from 'gsap/Draggable'
@@ -27,30 +29,79 @@ const matchedUser = ref<UserProfile | null>(null)
 const userProfile = ref<any>(null)
 const showBanner = ref(true)
 
+// Location filtering
+const { getCurrentPosition, loading: geoLoading, error: geoError } = useGeolocation()
+const maxDistance = ref<number | null>(25) // Default: 25km
+const userLatitude = ref<number | null>(null)
+const userLongitude = ref<number | null>(null)
+const showLocationPrompt = ref(false)
+
 let draggableInstance: any = null
 
 const loadUsers = async () => {
   if (!authStore.user) return
+
+  try {
+    // Load user profile for banner
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authStore.user.id)
+      .single()
+
+    if (profileData) {
+      userProfile.value = profileData
+      // Get user's location from profile
+      if (profileData.latitude != null && profileData.longitude != null) {
+        userLatitude.value = profileData.latitude
+        userLongitude.value = profileData.longitude
+      }
+    }
+
+    // Fetch users with location filtering
+    const fetchedPlayers = await getDiscoverUsers(
+      authStore.user.id,
+      userLatitude.value,
+      userLongitude.value,
+      maxDistance.value
+    )
+
+    players.value = fetchedPlayers
+    currentIndex.value = 0
+
+    // Initialize draggable after players are loaded
+    await nextTick()
+    setupDraggable()
+  } catch (error) {
+    console.error('Error loading users:', error)
+  }
+}
+
+// Request user location
+const requestLocation = async () => {
+  const coords = await getCurrentPosition()
   
-  // Load user profile for banner
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', authStore.user.id)
-    .single()
-  
-  userProfile.value = profile
-  
-  players.value = await getDiscoverUsers(authStore.user.id, 20)
-  
-  if (players.value.length > 0) {
-    nextTick(() => {
-      gsap.set(cardRef.value, {
-        opacity: 1,
-        scale: 1
-      })
-      setupDraggable()
-    })
+  if (coords) {
+    userLatitude.value = coords.latitude
+    userLongitude.value = coords.longitude
+    showLocationPrompt.value = false
+    
+    // Save to profile
+    if (authStore.user) {
+      await supabase
+        .from('profiles')
+        .update({
+          latitude: coords.latitude,
+          longitude: coords.longitude
+        })
+        .eq('id', authStore.user.id)
+    }
+    
+    // Reload users with location
+    await loadUsers()
+  } else {
+    // Show detailed error
+    showLocationPrompt.value = true
   }
 }
 
@@ -195,6 +246,15 @@ onMounted(async () => {
     return
   }
 
+  // Auto-request location on mount
+  await requestLocation()
+  
+  // If no location after request, show prompt
+  if (!userLatitude.value) {
+    showLocationPrompt.value = true
+    return
+  }
+
   await loadUsers()
 })
 </script>
@@ -215,18 +275,75 @@ onMounted(async () => {
         <p class="text-muted-foreground">Drag cards or use buttons to swipe</p>
       </div>
 
-      <div v-if="loading" class="text-center py-12">
-        <p class="text-lg text-muted-foreground">Loading players...</p>
+      <!-- Location & Distance Filter -->
+      <div class="mb-6 space-y-4">
+        <!-- Distance Filter (only when location enabled) -->
+        <DistanceFilter 
+          v-if="userLatitude"
+          v-model="maxDistance" 
+          @update:modelValue="loadUsers"
+        />
       </div>
 
-      <div v-else-if="players.length === 0 || currentIndex >= players.length" class="text-center py-12">
-        <Trophy class="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-        <h2 class="text-2xl font-bold mb-2">No More Players</h2>
-        <p class="text-muted-foreground mb-6">You've seen all available players for now.</p>
-        <Button @click="loadUsers">Refresh</Button>
+      <!-- Location Required Prompt (BLOCKING) -->
+      <div v-if="!userLatitude || showLocationPrompt" class="max-w-md mx-auto">
+        <Card class="border-2 border-primary/30 bg-gradient-to-b from-primary/10 via-primary/5 to-background">
+          <CardContent class="p-6 text-center space-y-4">
+            <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <MapPin class="h-8 w-8 text-primary" />
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-bold mb-2">Location Required</h3>
+              <p class="text-muted-foreground mb-4">
+                Enable location to discover tennis players near you and see how far they are.
+              </p>
+            </div>
+
+            <div v-if="geoError" class="p-4 text-sm bg-destructive/10 border border-destructive/20 rounded-md space-y-2">
+              <p class="font-semibold text-destructive">{{ geoError.message }}</p>
+              <div class="text-muted-foreground space-y-1 text-xs">
+                <p class="font-medium">How to fix:</p>
+                <ul class="list-disc list-inside space-y-1">
+                  <li>Click the 🔒 icon in your browser's address bar</li>
+                  <li>Look for "Location" permission</li>
+                  <li>Change it to "Allow"</li>
+                  <li>Refresh this page and try again</li>
+                </ul>
+              </div>
+            </div>
+
+            <Button 
+              @click="requestLocation"
+              class="w-full"
+              size="lg"
+              :disabled="geoLoading"
+            >
+              <Navigation class="h-5 w-5 mr-2" />
+              {{ geoLoading ? 'Getting location...' : geoError ? 'Try Again' : 'Enable Location' }}
+            </Button>
+
+            <p class="text-xs text-muted-foreground">
+              Your exact location is never shared. Only distance is shown to other players.
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      <div v-else class="space-y-6">
+      <!-- Player Cards (only show when location enabled) -->
+      <div v-if="userLatitude && !showLocationPrompt">
+        <div v-if="loading" class="text-center py-12">
+          <p class="text-lg text-muted-foreground">Loading players...</p>
+        </div>
+
+        <div v-else-if="players.length === 0 || currentIndex >= players.length" class="text-center py-12">
+          <Trophy class="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+          <h2 class="text-2xl font-bold mb-2">No More Players</h2>
+          <p class="text-muted-foreground mb-6">You've seen all available players for now.</p>
+          <Button @click="loadUsers">Refresh</Button>
+        </div>
+
+        <div v-else class="space-y-6">
         <!-- Card container with 3D perspective -->
         <div class="relative h-[520px] perspective-1000">
           <!-- Stack of all remaining cards -->
@@ -258,7 +375,7 @@ onMounted(async () => {
                         class="w-full h-full object-cover"
                       />
                       <div v-else class="w-full h-full bg-primary/10 flex items-center justify-center">
-                        <UserIcon class="h-16 w-16 text-primary" />
+                        <User class="h-16 w-16 text-primary" />
                       </div>
                     </div>
                   </div>
@@ -269,6 +386,10 @@ onMounted(async () => {
                       <CardDescription class="flex items-center gap-1 text-base">
                         <MapPin class="h-4 w-4" />
                         {{ player.location || 'Location not set' }}
+                        <!-- Distance -->
+                        <span v-if="player.distance != null" class="ml-2 text-primary font-semibold">
+                          ({{ player.distance }} km away)
+                        </span>
                       </CardDescription>
                     </div>
                     <div class="flex items-center gap-1.5 px-3 py-1.5 bg-primary/20 text-primary rounded-full">
@@ -342,10 +463,12 @@ onMounted(async () => {
           </Button>
         </div>
 
-        <p class="text-center text-sm text-muted-foreground">
-          💡 Tip: Drag the card left or right to swipe!
-        </p>
+          <p class="text-center text-sm text-muted-foreground">
+            💡 Tip: Drag the card left or right to swipe!
+          </p>
+        </div>
       </div>
+      <!-- End location-gated content -->
     </div>
 
     <!-- Match Modal -->
