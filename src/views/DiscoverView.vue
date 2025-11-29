@@ -59,7 +59,8 @@ const calculatePlayerCounts = (allPlayers: UserProfile[]) => {
   const currentMax = maxDistance.value
   if (currentMax !== null && counts[currentMax] === 0) {
     for (const range of ranges) {
-      if (range > currentMax && counts[range] > 0) {
+      const rangeCount = counts[range] ?? 0
+      if (range > currentMax && rangeCount > 0) {
         nextBestRange.value = range
         return
       }
