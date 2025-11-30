@@ -181,6 +181,9 @@ const setupDraggable = () => {
     type: 'x,y',
     bounds: { minX: -300, maxX: 300, minY: -100, maxY: 100 },
     inertia: true,
+    dragClickables: true, // Allow clicking on buttons/links inside
+    zIndexBoost: false, // Prevent z-index changes
+    minimumMovement: 10, // Prevent accidental drags on tap
     onDrag: function() {
       const x = this.x
       const rotation = x / 10
@@ -443,6 +446,8 @@ onMounted(async () => {
             v-for="(player, index) in players.slice(currentIndex)" 
             :key="player.id"
             class="absolute inset-0 transition-transform duration-300"
+            :class="{ 'touch-none cursor-grab': index === 0 }"
+            :ref="index === 0 ? 'cardRef' : undefined"
             :style="{
               transform: `scale(${1 - index * 0.03}) translateY(${index * 12}px)`,
               zIndex: players.length - index,
@@ -644,5 +649,12 @@ onMounted(async () => {
 
 .cursor-grab:active {
   cursor: grabbing !important;
+}
+
+/* Prevent browser handling of gestures on the card */
+.touch-none {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 </style>
