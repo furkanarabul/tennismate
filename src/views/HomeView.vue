@@ -218,12 +218,12 @@ onMounted(() => {
           <div 
             v-for="(feature, index) in features" 
             :key="index"
-            class="group relative p-1 rounded-2xl bg-gradient-to-b from-border/50 to-transparent dark:from-white/10 dark:to-transparent hover:from-green-500/50 hover:to-green-900/50 transition-all duration-500 reveal-on-scroll"
+            class="group relative p-[1px] rounded-2xl bg-gradient-to-b from-border/50 to-transparent dark:from-white/10 dark:to-transparent hover:from-green-500/20 hover:to-green-50/50 dark:hover:to-green-900/20 transition-all duration-500 reveal-on-scroll"
             :style="{ transitionDelay: `${index * 100}ms` }"
           >
-            <div class="absolute inset-0 bg-gradient-to-b from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl blur-xl"></div>
-            <div class="relative h-full bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-border/50 dark:border-white/10 p-6 rounded-xl overflow-hidden shadow-sm dark:shadow-none">
-              <div class="h-12 w-12 rounded-lg bg-green-500/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-green-500/20 transition-all duration-300">
+            <div class="absolute inset-0 bg-gradient-to-b from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl blur-xl"></div>
+            <div class="relative h-full bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-border/50 dark:border-white/10 p-6 rounded-xl overflow-hidden shadow-sm dark:shadow-none group-hover:border-green-500/20 transition-colors duration-500">
+              <div class="h-12 w-12 rounded-lg bg-green-500/10 flex items-center justify-center mb-4 group-hover:scale-105 group-hover:bg-green-500/15 transition-all duration-300">
                 <component :is="feature.icon" class="h-6 w-6 text-green-600 dark:text-green-500" />
               </div>
               <h3 class="text-xl font-bold mb-2 text-foreground dark:text-white">{{ feature.title }}</h3>
