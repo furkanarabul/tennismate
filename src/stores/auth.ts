@@ -40,6 +40,19 @@ export const useAuthStore = defineStore('auth', () => {
         return data.user
     }
 
+    // Login with Google
+    const loginWithGoogle = async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/discover`
+            }
+        })
+
+        if (error) throw error
+        return data
+    }
+
     // Register
     const register = async (email: string, password: string, name: string) => {
         const { data, error } = await supabase.auth.signUp({
@@ -103,6 +116,7 @@ export const useAuthStore = defineStore('auth', () => {
         isAuthenticated,
         initialize,
         login,
+        loginWithGoogle,
         register,
         logout,
         setUser
