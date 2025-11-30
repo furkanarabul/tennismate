@@ -21,6 +21,16 @@ export function useGeolocation() {
     })
 
     const getCurrentPosition = async (): Promise<GeolocationCoordinates | null> => {
+        // Check for consent first
+        const consent = localStorage.getItem('tennis_mate_consent')
+        if (consent === 'declined') {
+            error.value = {
+                code: 4,
+                message: 'Location access was declined by user preference'
+            }
+            return null
+        }
+
         if (!isSupported.value) {
             error.value = {
                 code: 0,

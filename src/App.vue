@@ -3,6 +3,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import { Trophy, Home, Compass, Users, User, Heart, ListTodo } from 'lucide-vue-next'
 import InstallPrompt from '@/components/InstallPrompt.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import ConsentBanner from '@/components/ConsentBanner.vue'
 </script>
 
 <template>
@@ -93,6 +94,9 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
     
     <!-- PWA Install Prompt -->
     <InstallPrompt />
+    
+    <!-- Privacy Consent Banner -->
+    <ConsentBanner />
   </div>
 </template>
 
