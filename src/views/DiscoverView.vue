@@ -243,9 +243,9 @@ const requestLocation = async () => {
   try {
     const position = await getCurrentPosition()
     // Fix: Check if position exists before accessing coords
-    if (position && position.coords) {
-      userLatitude.value = position.coords.latitude
-      userLongitude.value = position.coords.longitude
+    if (position) {
+      userLatitude.value = position.latitude
+      userLongitude.value = position.longitude
       showLocationPrompt.value = false
       
       // Save to profile
@@ -253,8 +253,8 @@ const requestLocation = async () => {
         await supabase
           .from('profiles')
           .update({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
+            latitude: position.latitude,
+            longitude: position.longitude
           })
           .eq('id', authStore.user.id)
       }

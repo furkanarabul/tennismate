@@ -6,7 +6,7 @@ interface InputProps {
   type?: string
   placeholder?: string
   disabled?: boolean
-  modelValue?: string
+  modelValue?: string | number | null
 }
 
 const props = withDefaults(defineProps<InputProps>(), {
