@@ -159,7 +159,8 @@ onMounted(async () => {
             id: authStore.user.id,
             email: authStore.user.email,
             name: authStore.user.user_metadata?.name || 'User',
-            skill_level: 'Intermediate'
+            skill_level: 'Intermediate',
+            avatar_url: authStore.user.user_metadata?.avatar_url || ''
           }
         ])
 
@@ -173,7 +174,7 @@ onMounted(async () => {
         location: '',
         bio: '',
         availability: [],
-        avatar_url: '',
+        avatar_url: authStore.user.user_metadata?.avatar_url || '',
         age: null
       }
     }
