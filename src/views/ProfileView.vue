@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Trophy, MapPin, Star, Calendar, User as UserIcon, LogOut, Edit2, Save, X } from 'lucide-vue-next'
+import { Trophy, MapPin, Star, Calendar, User as UserIcon, LogOut, Edit2, Save, X, Hash } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 import AvailabilityPicker from '@/components/AvailabilityPicker.vue'
@@ -26,7 +26,8 @@ const profile = ref({
   location: '',
   bio: '',
   availability: [] as any[],
-  avatar_url: ''
+  avatar_url: '',
+  age: null as number | null
 })
 
 // Form data for editing
@@ -35,7 +36,8 @@ const formData = ref({
   location: '',
   bio: '',
   availability: [] as any[],
-  avatar_url: ''
+  avatar_url: '',
+  age: null as number | null
 })
 
 const skillLevelOptions = [
@@ -71,7 +73,8 @@ const startEditing = () => {
     location: profile.value.location,
     bio: profile.value.bio,
     availability: JSON.parse(JSON.stringify(profile.value.availability)),
-    avatar_url: profile.value.avatar_url
+    avatar_url: profile.value.avatar_url,
+    age: profile.value.age
   }
   isEditing.value = true
 }
@@ -93,7 +96,8 @@ const saveProfile = async () => {
         location: formData.value.location || null,
         bio: formData.value.bio || null,
         availability: JSON.stringify(formData.value.availability),
-        avatar_url: formData.value.avatar_url || null
+        avatar_url: formData.value.avatar_url || null,
+        age: formData.value.age || null
       })
       .eq('id', authStore.user.id)
 
@@ -105,6 +109,7 @@ const saveProfile = async () => {
     profile.value.bio = formData.value.bio
     profile.value.availability = formData.value.availability
     profile.value.avatar_url = formData.value.avatar_url
+    profile.value.age = formData.value.age
 
     isEditing.value = false
   } catch (error) {
@@ -142,7 +147,8 @@ onMounted(async () => {
         location: data.location || '',
         bio: data.bio || '',
         availability: data.availability ? JSON.parse(data.availability) : [],
-        avatar_url: data.avatar_url || ''
+        avatar_url: data.avatar_url || '',
+        age: data.age || null
       }
     } else {
       // Profile doesn't exist, create it
@@ -167,7 +173,8 @@ onMounted(async () => {
         location: '',
         bio: '',
         availability: [],
-        avatar_url: ''
+        avatar_url: '',
+        age: null
       }
     }
   } catch (error) {
@@ -248,6 +255,14 @@ onMounted(async () => {
 
             <div>
               <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                <Hash class="h-4 w-4" />
+                <span>Age</span>
+              </div>
+              <p class="font-medium">{{ profile.age || 'Not set' }}</p>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                 <UserIcon class="h-4 w-4" />
                 <span>About</span>
               </div>
@@ -290,13 +305,27 @@ onMounted(async () => {
               />
             </div>
 
-            <div class="space-y-2">
-              <Label for="location">Location</Label>
-              <Input
-                id="location"
-                v-model="formData.location"
-                placeholder="San Francisco, CA"
-              />
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <Label for="location">Location</Label>
+                <Input
+                  id="location"
+                  v-model="formData.location"
+                  placeholder="San Francisco, CA"
+                />
+              </div>
+              
+              <div class="space-y-2">
+                <Label for="age">Age</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  v-model="formData.age"
+                  placeholder="25"
+                  min="18"
+                  max="100"
+                />
+              </div>
             </div>
 
             <div class="space-y-2">

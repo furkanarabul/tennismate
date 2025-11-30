@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Heart, X, MapPin, Trophy, Star, MessageCircle, User, Navigation } from 'lucide-vue-next'
-import { ref, onMounted, nextTick } from 'vue'
+import { Heart, X, MapPin, Trophy, Star, MessageCircle, User, Navigation, ChevronDown } from 'lucide-vue-next'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useMatching, type UserProfile } from '@/composables/useMatching'
@@ -11,10 +11,6 @@ import DistanceFilter from '@/components/DistanceFilter.vue'
 import { useGeolocation } from '@/composables/useGeolocation'
 import { supabase } from '@/lib/supabase'
 import gsap from 'gsap'
-import { Draggable } from 'gsap/Draggable'
-
-// Register GSAP plugins
-gsap.registerPlugin(Draggable)
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -72,8 +68,6 @@ const calculatePlayerCounts = (allPlayers: UserProfile[]) => {
   }
 }
 
-let draggableInstance: any = null
-
 const loadUsers = async () => {
   if (!authStore.user) return
 
@@ -101,173 +95,134 @@ const loadUsers = async () => {
       userLongitude.value,
       maxDistance.value
     )
-
-    // Also fetch ALL players to calculate counts
-    const allPlayers = await getDiscoverUsers(
-      authStore.user.id,
-      userLatitude.value,
-      userLongitude.value,
-      null // Get all to count
-    )
-
-    calculatePlayerCounts(allPlayers)
-
-    // Store all distances for client-side filtering
-    allPlayerDistances.value = allPlayers
+    
+    // Store all distances for client-side filtering/counting
+    allPlayerDistances.value = fetchedPlayers
       .map(p => p.distance)
       .filter((d): d is number => d != null)
-
+    
+    // Calculate initial counts
+    calculatePlayerCounts(fetchedPlayers)
+    
     players.value = fetchedPlayers
-    currentIndex.value = 0
-
-    // Initialize draggable after players are loaded
-    await nextTick()
-    setupDraggable()
+    
+    // Reset index if we have new players
+    if (players.value.length > 0) {
+      currentIndex.value = 0
+    }
   } catch (error) {
     console.error('Error loading users:', error)
   }
 }
 
-// Request user location
-const requestLocation = async () => {
-  const coords = await getCurrentPosition()
-  
-  if (coords) {
-    userLatitude.value = coords.latitude
-    userLongitude.value = coords.longitude
-    showLocationPrompt.value = false
-    
-    // Save to profile
-    if (authStore.user) {
-      await supabase
-        .from('profiles')
-        .update({
-          latitude: coords.latitude,
-          longitude: coords.longitude
-        })
-        .eq('id', authStore.user.id)
-    }
-    
-    // Reload users with location
-    await loadUsers()
-  } else {
-    // Show detailed error
-    showLocationPrompt.value = true
+const getSkillStars = (level: string) => {
+  switch (level?.toLowerCase()) {
+    case 'beginner': return 1
+    case 'intermediate': return 2
+    case 'advanced': return 3
+    case 'pro': return 4
+    default: return 1
   }
 }
 
-const parseAvailability = (availability: string | any[]) => {
-  if (!availability) return 'Not set'
+const isAvailabilityExpanded = ref(false)
+
+const getAvailabilityItems = (availability: string | any[]): string[] => {
+  if (!availability) return []
+  
+  let parsed = availability
   if (typeof availability === 'string') {
     try {
-      const parsed = JSON.parse(availability)
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((slot: any) => `${slot.day}: ${slot.timeSlots.join(', ')}`).join(' | ')
-      }
+      parsed = JSON.parse(availability)
     } catch {
-      return availability
+      return [availability]
     }
   }
-  if (Array.isArray(availability) && availability.length > 0) {
-    return availability.map((slot: any) => `${slot.day}: ${slot.timeSlots.join(', ')}`).join(' | ')
+  
+  if (Array.isArray(parsed) && parsed.length > 0) {
+    return parsed.map((slot: any) => {
+      // Clean up the time slots to be more compact
+      // e.g. "Afternoon (12pm-5pm)" -> "12pm-5pm"
+      const times = slot.timeSlots.map((t: string) => {
+        const match = t.match(/\((.*?)\)/)
+        return match ? match[1] : t
+      }).join(', ')
+      
+      // Shorten day names
+      const shortDay = slot.day.substring(0, 3)
+      
+      return `${shortDay}: ${times}`
+    })
   }
-  return 'Flexible'
+  
+  return ['Flexible']
 }
 
-const setupDraggable = () => {
-  if (!cardRef.value) return
+const getAvailabilitySummary = (availability: string | any[]): string => {
+  const items = getAvailabilityItems(availability)
+  if (items.length === 0) return 'Not set'
+  if (items[0] === 'Flexible') return 'Flexible'
+  return `${items.length} days available`
+}
 
-  draggableInstance = Draggable.create(cardRef.value, {
-    type: 'x,y',
-    bounds: { minX: -300, maxX: 300, minY: -100, maxY: 100 },
-    inertia: true,
-    zIndexBoost: false, // Prevent z-index changes
-    onDrag: function() {
-      const x = this.x
-      const rotation = x / 10
-      
-      gsap.set(cardRef.value, {
-        rotation: rotation,
-        transformOrigin: 'center bottom'
-      })
-    },
-    onDragEnd: function() {
-      const x = this.x
-      
-      if (Math.abs(x) > 120) {
-        // Swipe threshold met
-        const direction = x > 0 ? 'right' : 'left'
-        animateSwipe(direction)
-      } else {
-        // Return to center
-        gsap.to(cardRef.value, {
-          x: 0,
-          y: 0,
-          rotation: 0,
-          duration: 0.3,
-          ease: 'back.out(1.7)'
-        })
-      }
-    }
-  })[0]
+const updateCardRef = (el: any, index: number) => {
+  if (index === 0) {
+    cardRef.value = el as HTMLElement
+  }
 }
 
 const animateSwipe = (direction: 'left' | 'right') => {
-  return new Promise<void>(resolve => {
-    const multiplier = direction === 'right' ? 1 : -1
-    gsap.to(cardRef.value, {
-      x: 800 * multiplier,
-      y: -100,
-      rotation: 30 * multiplier,
-      opacity: 0,
-      duration: 0.4,
-      ease: 'power2.in',
-      onComplete: () => {
-        resolve()
-      }
-    })
+  if (!cardRef.value || isAnimating.value) return
+  
+  isAnimating.value = true
+  
+  const x = direction === 'right' ? 500 : -500
+  const rotation = direction === 'right' ? 30 : -30
+
+  gsap.to(cardRef.value, {
+    x: x,
+    rotation: rotation,
+    opacity: 0,
+    duration: 0.4,
+    ease: 'power1.in',
+    onComplete: () => {
+      handleSwipeComplete(direction)
+    }
   })
 }
 
-const handleLike = async () => {
-  if (isAnimating.value || !authStore.user) return
-  
+const handleSwipeComplete = async (direction: 'left' | 'right') => {
   const currentPlayer = players.value[currentIndex.value]
-  if (!currentPlayer) return
-  
-  isAnimating.value = true
-  await animateSwipe('right')
-  
-  const isMatch = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
-  
-  if (isMatch) {
-    matchedUser.value = currentPlayer
-    showMatchModal.value = true
+  if (!currentPlayer || !authStore.user) {
+    isAnimating.value = false
+    return
   }
-  
+
+  if (direction === 'right') {
+    const isMatch = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
+    if (isMatch) {
+      matchedUser.value = currentPlayer
+      showMatchModal.value = true
+    }
+  } else {
+    await swipeUser(authStore.user.id, currentPlayer.id, 'pass')
+  }
+
   // Remove swiped user from array
   players.value.splice(currentIndex.value, 1)
+  
+  await nextTick()
   
   resetCard()
   isAnimating.value = false
 }
 
-const handlePass = async () => {
-  if (isAnimating.value || !authStore.user) return
-  
-  const currentPlayer = players.value[currentIndex.value]
-  if (!currentPlayer) return
-  
-  isAnimating.value = true
-  await animateSwipe('left')
-  
-  await swipeUser(authStore.user.id, currentPlayer.id, 'pass')
-  
-  // Remove swiped user from array
-  players.value.splice(currentIndex.value, 1)
-  
-  resetCard()
-  isAnimating.value = false
+const handleLike = () => {
+  animateSwipe('right')
+}
+
+const handlePass = () => {
+  animateSwipe('left')
 }
 
 const resetCard = () => {
@@ -277,20 +232,51 @@ const resetCard = () => {
       y: 0,
       rotation: 0,
       opacity: 1,
-      scale: 1
+      clearProps: 'all'
     })
-    setupDraggable()
+    isAvailabilityExpanded.value = false
   }
 }
 
-const getSkillStars = (skillLevel: string) => {
-  switch (skillLevel) {
-    case 'Beginner': return 1
-    case 'Intermediate': return 2
-    case 'Advanced': return 3
-    default: return 1
+// Request location permission
+const requestLocation = async () => {
+  try {
+    const position = await getCurrentPosition()
+    // Fix: Check if position exists before accessing coords
+    if (position && position.coords) {
+      userLatitude.value = position.coords.latitude
+      userLongitude.value = position.coords.longitude
+      showLocationPrompt.value = false
+      
+      // Save to profile
+      if (authStore.user) {
+        await supabase
+          .from('profiles')
+          .update({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          })
+          .eq('id', authStore.user.id)
+      }
+      
+      await loadUsers()
+    } else {
+       showLocationPrompt.value = true
+    }
+  } catch (err: any) {
+    console.error('Location error:', err)
+    if (err.code === 1) { // Permission denied
+      showLocationPrompt.value = true
+    }
   }
 }
+
+// Watch for distance filter changes
+watch(maxDistance, async (newDistance) => {
+  if (newDistance) {
+    await loadUsers()
+  }
+})
 
 onMounted(async () => {
   if (!authStore.user) {
@@ -330,6 +316,14 @@ onMounted(async () => {
   console.log('⚠️ No saved location, requesting from browser...')
   await requestLocation()
 })
+
+// Watch for players loaded to setup cards (no draggable needed anymore)
+watch(players, () => {
+  // Reset card position if needed
+  if (cardRef.value) {
+    gsap.set(cardRef.value, { x: 0, y: 0, rotation: 0, opacity: 1 })
+  }
+}, { deep: true })
 </script>
 
 <template>
@@ -444,8 +438,8 @@ onMounted(async () => {
             v-for="(player, index) in players.slice(currentIndex)" 
             :key="player.id"
             class="absolute inset-0 transition-transform duration-300"
-            :class="{ 'touch-none cursor-grab': index === 0 }"
-            :ref="index === 0 ? 'cardRef' : undefined"
+            :class="{ 'cursor-default': index === 0 }"
+            :ref="(el) => updateCardRef(el, index)"
             :style="{
               transform: `scale(${1 - index * 0.03}) translateY(${index * 12}px)`,
               zIndex: players.length - index,
@@ -454,15 +448,13 @@ onMounted(async () => {
             }"
           >
             <div 
-              :ref="index === 0 ? 'cardRef' : undefined"
               class="h-full"
-              :class="index === 0 ? 'cursor-grab active:cursor-grabbing' : ''"
             >
-              <Card class="overflow-hidden h-full shadow-lg border-2 relative">
-                <CardHeader class="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent pb-4">
-                  <!-- Avatar Section -->
-                  <div class="flex items-center justify-center mb-4">
-                    <div class="h-32 w-32 rounded-full overflow-hidden border-4 border-background shadow-lg">
+              <Card class="overflow-hidden h-full shadow-lg border-2 relative flex flex-col">
+                <CardHeader class="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 flex-shrink-0">
+                  <div class="flex items-center gap-4">
+                    <!-- Avatar Section (Left) -->
+                    <div class="h-32 w-32 rounded-full overflow-hidden border-4 border-background shadow-lg flex-shrink-0 bg-muted">
                       <img
                         v-if="player.avatar_url"
                         :src="player.avatar_url"
@@ -470,66 +462,86 @@ onMounted(async () => {
                         class="w-full h-full object-cover"
                       />
                       <div v-else class="w-full h-full bg-primary/10 flex items-center justify-center">
-                        <User class="h-16 w-16 text-primary" />
+                        <User class="h-14 w-14 text-primary" />
                       </div>
                     </div>
-                  </div>
 
-                  <div class="flex items-start justify-between">
-                    <div>
+                    <!-- Info Section (Right) -->
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                      <!-- Name & Liked Badge -->
                       <div class="flex items-center gap-2 mb-1">
-                        <CardTitle class="text-3xl">{{ player.name }}</CardTitle>
-                        <!-- Liked You Badge -->
+                        <CardTitle class="text-2xl font-bold truncate">
+                          {{ player.name }}<span v-if="player.age" class="font-normal text-muted-foreground ml-1">, {{ player.age }}</span>
+                        </CardTitle>
                         <div 
                           v-if="player.hasLikedMe" 
-                          class="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"
+                          class="px-1.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-bold uppercase tracking-wider flex-shrink-0"
                         >
                           <Heart class="h-3 w-3 fill-current" />
-                          Liked You
                         </div>
                       </div>
-                      <CardDescription class="flex items-center gap-1 text-base">
-                        <MapPin class="h-4 w-4" />
-                        {{ player.location || 'Location not set' }}
-                        <!-- Distance -->
-                        <span v-if="player.distance != null" class="ml-2 text-primary font-semibold">
-                          ({{ player.distance }} km away)
+
+                      <!-- Location -->
+                      <div class="flex items-center gap-1 text-muted-foreground text-sm mb-2">
+                        <MapPin class="h-3.5 w-3.5 flex-shrink-0" />
+                        <span class="truncate">{{ player.location || 'Location not set' }}</span>
+                        <span v-if="player.distance != null" class="text-primary font-medium text-xs flex-shrink-0">
+                          ({{ player.distance }} km)
                         </span>
-                      </CardDescription>
-                    </div>
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-primary/20 text-primary rounded-full">
-                      <div class="flex items-center gap-0.5">
-                        <Star 
-                          v-for="i in getSkillStars(player.skill_level)" 
-                          :key="i"
-                          class="h-3.5 w-3.5 fill-current" 
-                        />
                       </div>
-                      <span class="font-semibold text-xs">{{ player.skill_level }}</span>
+
+                      <!-- Skill Level Badge -->
+                      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full w-fit">
+                        <div class="flex items-center gap-0.5">
+                          <Star 
+                            v-for="i in getSkillStars(player.skill_level)" 
+                            :key="i"
+                            class="h-3 w-3 fill-current" 
+                          />
+                        </div>
+                        <span class="font-semibold text-xs">{{ player.skill_level }}</span>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
                 
-                <CardContent class="space-y-5 pt-6">
+                <CardContent class="space-y-4 p-5 pt-2 flex-1 overflow-y-auto">
                   <div class="space-y-3">
-                    <div class="flex items-start gap-3">
-                      <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Trophy class="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p class="text-sm text-muted-foreground mb-0.5">Skill Level</p>
-                        <p class="font-semibold">{{ player.skill_level }}</p>
-                      </div>
-                    </div>
-                    
-                    <div class="bg-muted/30 rounded-lg p-4">
-                      <p class="text-sm text-muted-foreground mb-2 font-medium">About</p>
-                      <p class="text-base leading-relaxed">{{ player.bio || 'No bio yet' }}</p>
+                    <!-- About Section -->
+                    <div class="bg-muted/30 rounded-lg p-3">
+                      <p class="text-xs text-muted-foreground mb-1 font-medium uppercase tracking-wide">About</p>
+                      <p class="text-sm leading-relaxed">{{ player.bio || 'No bio yet' }}</p>
                     </div>
 
-                    <div class="bg-primary/5 rounded-lg p-4 border border-primary/20">
-                      <p class="text-sm text-muted-foreground mb-2 font-medium">Availability</p>
-                      <p class="text-base font-semibold text-primary">{{ parseAvailability(player.availability) }}</p>
+                    <!-- Availability Accordion -->
+                    <div class="bg-primary/5 rounded-lg border border-primary/20 overflow-hidden">
+                      <button 
+                        @click.stop="isAvailabilityExpanded = !isAvailabilityExpanded"
+                        class="w-full p-3 flex items-center justify-between hover:bg-primary/5 transition-colors"
+                      >
+                        <span class="text-sm font-medium text-muted-foreground">Availability</span>
+                        <div class="flex items-center gap-1">
+                          <span v-if="!isAvailabilityExpanded" class="text-xs text-primary font-semibold">
+                            {{ getAvailabilitySummary(player.availability) }}
+                          </span>
+                          <ChevronDown 
+                            class="h-4 w-4 text-primary transition-transform duration-300"
+                            :class="{ 'rotate-180': isAvailabilityExpanded }"
+                          />
+                        </div>
+                      </button>
+                      
+                      <div 
+                        v-show="isAvailabilityExpanded"
+                        class="px-3 pb-3 pt-0 max-h-[140px] overflow-y-auto"
+                      >
+                        <div class="space-y-1.5 mt-1">
+                           <div v-for="item in getAvailabilityItems(player.availability)" :key="item" class="text-sm font-medium text-primary/90 flex items-center gap-2">
+                             <div class="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0"></div>
+                             {{ item }}
+                           </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -567,12 +579,8 @@ onMounted(async () => {
             <Heart class="h-8 w-8" />
           </Button>
         </div>
-
-          <p class="text-center text-sm text-muted-foreground">
-            💡 Tip: Drag the card left or right to swipe!
-          </p>
-        </div>
       </div>
+
       <!-- End location-gated content -->
     </div>
 
@@ -646,6 +654,7 @@ onMounted(async () => {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   </div>
 </template>
