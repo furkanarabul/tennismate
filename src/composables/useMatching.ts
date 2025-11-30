@@ -14,6 +14,7 @@ export interface UserProfile {
     latitude?: number | null
     longitude?: number | null
     distance?: number // Calculated distance in km
+    hasLikedMe?: boolean // If the user has already liked the current user
 }
 
 export const useMatching = () => {
@@ -100,6 +101,24 @@ export const useMatching = () => {
 
             let users = (data as UserProfile[]) || []
 
+            // Check for incoming likes (users who liked current user)
+            const userIds = users.map(u => u.id)
+            if (userIds.length > 0) {
+                const { data: incomingLikes } = await supabase
+                    .from('swipes')
+                    .select('user_id')
+                    .eq('target_user_id', currentUserId)
+                    .eq('action', 'like')
+                    .in('user_id', userIds)
+
+                const likedUserIds = new Set(incomingLikes?.map(l => l.user_id) || [])
+
+                users = users.map(user => ({
+                    ...user,
+                    hasLikedMe: likedUserIds.has(user.id)
+                }))
+            }
+
             // Calculate distances if user location is provided
             if (userLatitude != null && userLongitude != null) {
                 console.log('📍 Calculating distances for user at:', { userLatitude, userLongitude })
@@ -111,9 +130,9 @@ export const useMatching = () => {
                             user.latitude,
                             user.longitude
                         )
-                        return { ...user, distance }
+                        return { ...user, distance, hasLikedMe: user.hasLikedMe }
                     }
-                    return { ...user, distance: undefined }
+                    return { ...user, distance: undefined, hasLikedMe: user.hasLikedMe }
                 })
 
                 // Filter by max distance if specified
@@ -125,6 +144,10 @@ export const useMatching = () => {
 
                 // Sort by distance (closest first)
                 users.sort((a, b) => {
+                    // Prioritize users who liked me
+                    if (a.hasLikedMe && !b.hasLikedMe) return -1
+                    if (!a.hasLikedMe && b.hasLikedMe) return 1
+
                     if (a.distance == null) return 1
                     if (b.distance == null) return -1
                     return a.distance - b.distance

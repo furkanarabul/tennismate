@@ -181,9 +181,7 @@ const setupDraggable = () => {
     type: 'x,y',
     bounds: { minX: -300, maxX: 300, minY: -100, maxY: 100 },
     inertia: true,
-    dragClickables: true, // Allow clicking on buttons/links inside
     zIndexBoost: false, // Prevent z-index changes
-    minimumMovement: 10, // Prevent accidental drags on tap
     onDrag: function() {
       const x = this.x
       const rotation = x / 10
@@ -479,7 +477,17 @@ onMounted(async () => {
 
                   <div class="flex items-start justify-between">
                     <div>
-                      <CardTitle class="text-3xl mb-1">{{ player.name }}</CardTitle>
+                      <div class="flex items-center gap-2 mb-1">
+                        <CardTitle class="text-3xl">{{ player.name }}</CardTitle>
+                        <!-- Liked You Badge -->
+                        <div 
+                          v-if="player.hasLikedMe" 
+                          class="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"
+                        >
+                          <Heart class="h-3 w-3 fill-current" />
+                          Liked You
+                        </div>
+                      </div>
                       <CardDescription class="flex items-center gap-1 text-base">
                         <MapPin class="h-4 w-4" />
                         {{ player.location || 'Location not set' }}
