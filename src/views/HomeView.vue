@@ -190,7 +190,7 @@ onMounted(() => {
               Start Matching
               <ArrowRight class="ml-2 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" class="h-14 px-8 text-lg rounded-full border-input dark:border-white/10 text-foreground dark:text-white hover:bg-accent/50 dark:hover:bg-white/10 backdrop-blur-sm transition-all hover:scale-105">
+            <Button size="lg" variant="outline" class="h-14 px-8 text-lg rounded-full border-input dark:border-white/20 text-foreground dark:text-white hover:bg-accent/50 dark:bg-white/5 dark:hover:bg-white/20 backdrop-blur-md transition-all hover:scale-105">
               Learn More
             </Button>
           </div>
@@ -218,7 +218,7 @@ onMounted(() => {
           <div 
             v-for="(feature, index) in features" 
             :key="index"
-            class="group relative p-[1px] rounded-2xl bg-gradient-to-b from-border/50 to-transparent dark:from-white/10 dark:to-transparent hover:from-green-500/20 hover:to-green-50/50 dark:hover:to-green-900/20 transition-all duration-500 reveal-on-scroll"
+            class="group relative p-[1px] rounded-2xl bg-gradient-to-b from-border/50 to-transparent dark:from-white/10 dark:to-transparent hover:from-green-500/30 hover:to-green-100/60 dark:hover:to-green-900/20 transition-all duration-500 reveal-on-scroll"
             :style="{ transitionDelay: `${index * 100}ms` }"
           >
             <div class="absolute inset-0 bg-gradient-to-b from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl blur-xl"></div>
