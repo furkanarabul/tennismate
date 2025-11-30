@@ -153,7 +153,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col min-h-screen bg-background overflow-x-hidden">
     <!-- Hero Section -->
-    <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background dark:bg-[#0a0a0a]">
+    <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background dark:bg-[#020817]">
       <!-- Background Image -->
       <div class="absolute inset-0 z-0">
         <img 
@@ -162,11 +162,11 @@ onMounted(() => {
           class="w-full h-full object-cover opacity-30 dark:opacity-60"
         />
         <!-- Gradient Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-b from-white/90 via-white/60 to-background dark:from-black/80 dark:via-black/50 dark:to-[#0a0a0a]"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-white/90 via-white/60 to-background dark:from-[#020817]/80 dark:via-[#020817]/50 dark:to-[#020817]"></div>
       </div>
 
       <!-- Hero Content -->
-      <div class="relative z-10 container px-4 md:px-6">
+      <div class="relative z-10 container mx-auto px-4 md:px-6">
         <div class="flex flex-col items-center text-center space-y-8 hero-content max-w-4xl mx-auto">
           
           <div class="hero-content-fade inline-flex items-center rounded-full border border-green-500/30 bg-green-500/10 px-4 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 backdrop-blur-xl">
@@ -201,10 +201,10 @@ onMounted(() => {
     </section>
 
     <!-- Features Section -->
-    <section class="py-24 md:py-32 bg-muted/30 dark:bg-black relative overflow-hidden">
+    <section class="py-24 md:py-32 bg-muted/30 dark:bg-[#020817]/50 relative overflow-hidden">
       <div class="absolute inset-0 bg-green-500/5 dark:bg-green-900/5 skew-y-3 transform origin-top-left scale-110"></div>
       
-      <div class="container px-4 md:px-6 relative z-10">
+      <div class="container mx-auto px-4 md:px-6 relative z-10">
         <div class="text-center mb-16 reveal-on-scroll">
           <h2 class="text-3xl md:text-5xl font-bold mb-4 text-foreground dark:bg-clip-text dark:text-transparent dark:bg-gradient-to-b dark:from-white dark:to-white/60">
             Everything you need to play
@@ -237,8 +237,8 @@ onMounted(() => {
     </section>
 
     <!-- How it Works Section -->
-    <section class="how-it-works-section py-24 md:py-32 bg-background dark:bg-[#0a0a0a] relative">
-      <div class="container px-4 md:px-6">
+    <section class="how-it-works-section py-24 md:py-32 bg-background dark:bg-[#020817] relative">
+      <div class="container mx-auto px-4 md:px-6">
         <div class="text-center mb-20">
           <h2 class="text-3xl md:text-5xl font-bold mb-4 text-foreground dark:text-white">How it Works</h2>
           <p class="text-muted-foreground text-lg">Get on the court in 3 simple steps</p>
@@ -275,7 +275,7 @@ onMounted(() => {
         <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
       </div>
       
-      <div class="container px-4 md:px-6 relative z-10 text-center reveal-on-scroll">
+      <div class="container mx-auto px-4 md:px-6 relative z-10 text-center reveal-on-scroll">
         <h2 class="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
           Ready to serve?
         </h2>
