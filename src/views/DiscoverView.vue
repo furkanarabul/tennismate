@@ -474,10 +474,16 @@ watch(players, () => {
                           {{ player.name }}<span v-if="player.age" class="font-normal text-muted-foreground ml-1">, {{ player.age }}</span>
                         </CardTitle>
                         <div 
+                          v-for="i in getSkillStars(player.skill_level)" 
+                          :key="i"
+                          class="h-3 w-3 fill-current" 
+                        />
+                        <div 
                           v-if="player.hasLikedMe" 
-                          class="px-1.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-bold uppercase tracking-wider flex-shrink-0"
+                          class="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-bold uppercase tracking-wider flex-shrink-0 flex items-center"
                         >
-                          <Heart class="h-3 w-3 fill-current" />
+                          <Heart class="h-3 w-3 fill-current mr-1" />
+                          Liked You
                         </div>
                       </div>
 
