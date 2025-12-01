@@ -227,5 +227,19 @@
             "pass": "Pas",
             "match": "Eşleş"
         }
+    },
+    "profile_completion": {
+        "title": "Profilini Tamamla",
+        "subtitle": "Profilini tamamlayarak potansiyel tenis partnerlerinin dikkatini çek",
+        "complete": "Tamamlandı",
+        "items_remaining": "öğe kaldı",
+        "button": "Profili Tamamla",
+        "items": {
+            "photo": "Profil Fotoğrafı",
+            "location": "Konum",
+            "skill_level": "Yetenek Seviyesi",
+            "bio": "Biyografi",
+            "availability": "Uygunluk"
+        }
     }
 }

@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { X, AlertCircle, CheckCircle2 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   profile: any
@@ -14,6 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const { t } = useI18n()
 
 // Calculate profile completion
 const completionItems = computed(() => {
@@ -28,29 +30,19 @@ const completionItems = computed(() => {
     }
   }
   
-  console.log('🔍 Availability Debug:')
-  console.log('  Raw value:', props.profile?.availability)
-  console.log('  Parsed value:', availability)
-  console.log('  Type:', typeof availability)
-  console.log('  Is Array:', Array.isArray(availability))
-  
   const isAvailabilityComplete = 
     availability && 
     availability !== 'Not set' &&
     availability !== 'Flexible' &&
     (Array.isArray(availability) ? availability.length > 0 : typeof availability === 'string' && availability.length > 0)
   
-  console.log('  Is Complete:', isAvailabilityComplete)
-  
   const items = [
-    { name: 'Profile Photo', completed: !!props.profile?.avatar_url },
-    { name: 'Location', completed: !!props.profile?.location && props.profile.location !== 'Not set' },
-    { name: 'Skill Level', completed: !!props.profile?.skill_level },
-    { name: 'Bio', completed: !!props.profile?.bio && props.profile.bio.length > 0 && props.profile.bio !== 'No bio yet' },
-    { name: 'Availability', completed: !!isAvailabilityComplete }
+    { name: t('profile_completion.items.photo'), completed: !!props.profile?.avatar_url },
+    { name: t('profile_completion.items.location'), completed: !!props.profile?.location && props.profile.location !== 'Not set' },
+    { name: t('profile_completion.items.skill_level'), completed: !!props.profile?.skill_level },
+    { name: t('profile_completion.items.bio'), completed: !!props.profile?.bio && props.profile.bio.length > 0 && props.profile.bio !== 'No bio yet' },
+    { name: t('profile_completion.items.availability'), completed: !!isAvailabilityComplete }
   ]
-  
-  console.log('📊 All Items:', items)
   
   return items
 })
@@ -77,16 +69,16 @@ const isComplete = computed(() => completionPercentage.value === 100)
         <div class="flex items-start gap-3 flex-1">
           <AlertCircle class="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
           <div class="flex-1 min-w-0">
-            <h3 class="font-semibold text-lg mb-1">Complete Your Profile</h3>
+            <h3 class="font-semibold text-lg mb-1">{{ t('profile_completion.title') }}</h3>
             <p class="text-sm text-muted-foreground mb-3">
-              Stand out to potential tennis partners by completing your profile
+              {{ t('profile_completion.subtitle') }}
             </p>
             
             <!-- Progress Bar -->
             <div class="mb-3">
               <div class="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                <span>{{ completionPercentage }}% Complete</span>
-                <span>{{ missingItems.length }} items remaining</span>
+                <span>{{ completionPercentage }}% {{ t('profile_completion.complete') }}</span>
+                <span>{{ missingItems.length }} {{ t('profile_completion.items_remaining') }}</span>
               </div>
               <div class="h-2 bg-muted rounded-full overflow-hidden">
                 <div 
@@ -114,7 +106,7 @@ const isComplete = computed(() => completionPercentage.value === 100)
               class="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-opacity"
               @click="router.push('/profile')"
             >
-              Complete Profile
+              {{ t('profile_completion.button') }}
             </Button>
           </div>
         </div>

@@ -227,5 +227,19 @@
             "pass": "Pass",
             "match": "Match"
         }
+    },
+    "profile_completion": {
+        "title": "Complete Your Profile",
+        "subtitle": "Stand out to potential tennis partners by completing your profile",
+        "complete": "Complete",
+        "items_remaining": "items remaining",
+        "button": "Complete Profile",
+        "items": {
+            "photo": "Profile Photo",
+            "location": "Location",
+            "skill_level": "Skill Level",
+            "bio": "Bio",
+            "availability": "Availability"
+        }
     }
 }

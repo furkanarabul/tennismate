@@ -227,5 +227,19 @@
             "pass": "Passen",
             "match": "Matchen"
         }
+    },
+    "profile_completion": {
+        "title": "Vervollständige dein Profil",
+        "subtitle": "Hebe dich von anderen Tennispartnern ab, indem du dein Profil vervollständigst",
+        "complete": "Fertig",
+        "items_remaining": "Elemente verbleibend",
+        "button": "Profil vervollständigen",
+        "items": {
+            "photo": "Profilbild",
+            "location": "Standort",
+            "skill_level": "Spielstärke",
+            "bio": "Bio",
+            "availability": "Verfügbarkeit"
+        }
     }
 }
