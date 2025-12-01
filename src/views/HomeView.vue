@@ -202,6 +202,7 @@ onMounted(() => {
 
     <!-- Features Section -->
     <section class="py-24 md:py-32 bg-muted/30 dark:bg-[#020817]/50 relative overflow-hidden">
+      <div class="absolute inset-0 bg-dot-pattern pointer-events-none"></div>
       <div class="absolute inset-0 bg-green-500/5 dark:bg-green-900/5 skew-y-3 transform origin-top-left scale-110"></div>
       
       <div class="container mx-auto px-4 md:px-6 relative z-10">
@@ -238,6 +239,7 @@ onMounted(() => {
 
     <!-- How it Works Section -->
     <section class="how-it-works-section py-24 md:py-32 bg-background dark:bg-[#020817] relative">
+      <div class="absolute inset-0 bg-dot-pattern pointer-events-none"></div>
       <div class="container mx-auto px-4 md:px-6">
         <div class="text-center mb-20">
           <h2 class="text-3xl md:text-5xl font-bold mb-4 text-foreground dark:text-white">How it Works</h2>
@@ -295,5 +297,15 @@ onMounted(() => {
 .bg-\[url\(\'\/src\/assets\/grid\.svg\'\)\] {
   background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
   background-size: 30px 30px;
+}
+
+.bg-dot-pattern {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.07) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+/* Light mode adjustment if needed */
+:root:not(.dark) .bg-dot-pattern {
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.1) 1.5px, transparent 1.5px);
 }
 </style>
