@@ -36,7 +36,7 @@ export async function detectAndSetLanguage() {
     }
 
     // 3. Fallback to Browser Language
-    const browserLang = (navigator.language || DEFAULT_LANGUAGE).split('-')[0]
+    const browserLang = (navigator.language || DEFAULT_LANGUAGE).split('-')[0] || DEFAULT_LANGUAGE
     if (SUPPORTED_LANGUAGES.includes(browserLang)) {
         setLanguage(browserLang)
     } else {
