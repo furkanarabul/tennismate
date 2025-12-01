@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowLeft, Send, User as UserIcon } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const { getMatches } = useMatching()
 const { getMessages, sendMessage, subscribeToMessages, unsubscribe } = useChat()
+const { t } = useI18n()
 
 const matchId = route.params.matchId as string
 const messages = ref<Message[]>([])
@@ -78,11 +80,11 @@ const formatTime = (timestamp: string) => {
   const diffMs = now.getTime() - date.getTime()
   const diffMins = Math.floor(diffMs / 60000)
 
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins} min ago`
+  if (diffMins < 1) return t('chat.time.just_now')
+  if (diffMins < 60) return t('chat.time.min_ago', { n: diffMins })
   
   const diffHours = Math.floor(diffMins / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffHours < 24) return t('chat.time.hour_ago', { n: diffHours })
   
   return date.toLocaleDateString()
 }
@@ -127,7 +129,7 @@ const isMyMessage = (msg: Message) => {
       class="flex-1 overflow-y-auto px-4 py-6 max-w-4xl mx-auto w-full pb-32"
     >
       <div v-if="messages.length === 0" class="text-center py-12">
-        <p class="text-muted-foreground">No messages yet. Say hi! 👋</p>
+        <p class="text-muted-foreground">{{ t('chat.no_messages') }}</p>
       </div>
 
       <div class="space-y-4">
@@ -167,7 +169,7 @@ const isMyMessage = (msg: Message) => {
         <form @submit.prevent="handleSend" class="flex gap-2">
           <Input
             v-model="newMessage"
-            placeholder="Type a message..."
+            :placeholder="t('chat.type_message')"
             class="flex-1"
             :disabled="sending"
           />

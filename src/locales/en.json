@@ -1,0 +1,230 @@
+{
+    "home": {
+        "hero": {
+            "badge": "Find Your Perfect Tennis Partner",
+            "word1": "Match.",
+            "word2": "Play.",
+            "word3": "Win.",
+            "subtitle": "Connect with local players, schedule matches, and level up your game. TennisMate makes finding your next opponent effortless.",
+            "start_matching": "Start Matching",
+            "learn_more": "Learn More"
+        },
+        "features": {
+            "title": "Everything you need to play",
+            "subtitle": "Powerful features designed to help you spend less time organizing and more time playing.",
+            "items": {
+                "smart_matching": {
+                    "title": "Smart Matching",
+                    "description": "Find players who match your skill level and location preferences."
+                },
+                "availability": {
+                    "title": "Availability",
+                    "description": "Set your playing schedule and see when others are free to play."
+                },
+                "location": {
+                    "title": "Location Based",
+                    "description": "Discover tennis partners in your immediate area with distance filtering."
+                },
+                "skill_levels": {
+                    "title": "Skill Levels",
+                    "description": "Filter players by NTRP rating or general skill level (Beginner to Pro)."
+                }
+            }
+        },
+        "how_it_works": {
+            "title": "How it Works",
+            "subtitle": "Get on the court in 3 simple steps",
+            "steps": {
+                "1": {
+                    "title": "Discover",
+                    "description": "Find players in your area based on skill level and availability."
+                },
+                "2": {
+                    "title": "Connect",
+                    "description": "Chat, schedule matches, and build your tennis network."
+                },
+                "3": {
+                    "title": "Play",
+                    "description": "Meet on the court and enjoy the game you love."
+                }
+            }
+        },
+        "cta": {
+            "title": "Ready to serve?",
+            "subtitle": "Join thousands of tennis enthusiasts and find your perfect match today.",
+            "button": "Join TennisMate Now"
+        }
+    },
+    "app": {
+        "nav": {
+            "home": "Home",
+            "discover": "Discover",
+            "matches": "Matches",
+            "profile": "Profile"
+        }
+    },
+    "login": {
+        "welcome": "Welcome back! Sign in to continue",
+        "title": "Sign In",
+        "subtitle": "Enter your credentials to access your account",
+        "email_label": "Email",
+        "password_label": "Password",
+        "submit_button": "Sign In",
+        "submitting_button": "Signing in...",
+        "or_divider": "or",
+        "google_button": "Continue with Google",
+        "new_user": "New to TennisMate?",
+        "create_account": "Create an Account",
+        "errors": {
+            "fill_all": "Please fill in all fields",
+            "verify_email": "Please verify your email before logging in. Check your inbox for the verification link.",
+            "invalid_credentials": "Invalid email or password",
+            "google_failed": "Failed to sign in with Google"
+        }
+    },
+    "dashboard": {
+        "title": "Your Matches",
+        "subtitle": "Connect and play with your tennis partners",
+        "empty_state": {
+            "title": "No matches yet",
+            "description": "Start swiping to find tennis partners!",
+            "button": "Discover Players"
+        },
+        "card": {
+            "location_not_set": "Location not set",
+            "matched": "Matched",
+            "message": "Message",
+            "play": "Play"
+        },
+        "dates": {
+            "today": "Today",
+            "yesterday": "Yesterday",
+            "days_ago": "{n} days ago",
+            "weeks_ago": "{n} weeks ago",
+            "recently": "Recently"
+        }
+    },
+    "profile": {
+        "title": "Your Profile",
+        "subtitle": "Manage your tennis profile and preferences",
+        "edit_mode": "Edit Profile",
+        "view_mode": "View Profile",
+        "sections": {
+            "basic_info": "Basic Info",
+            "tennis_profile": "Tennis Profile",
+            "about": "About You",
+            "availability": "Availability"
+        },
+        "labels": {
+            "name": "Full Name",
+            "age": "Age",
+            "location": "Location",
+            "skill_level": "Skill Level",
+            "bio": "Bio",
+            "email": "Email"
+        },
+        "placeholders": {
+            "name": "Your name",
+            "age": "e.g. 25",
+            "location": "City, Country",
+            "bio": "Tell us about your play style, favorite surface, etc."
+        },
+        "actions": {
+            "edit": "Edit Profile",
+            "save": "Save Changes",
+            "cancel": "Cancel",
+            "logout": "Sign Out"
+        },
+        "skill_levels": {
+            "beginner": "Beginner",
+            "intermediate": "Intermediate",
+            "advanced": "Advanced"
+        }
+    },
+    "consent": {
+        "title": "Privacy & Location",
+        "description": "We use your location to find tennis partners nearby. Your precise location is stored securely and only used for matching. You can decline, but location-based features will be disabled.",
+        "accept": "Accept & Enable",
+        "decline": "Decline"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "not_set": "Not set",
+        "flexible": "Flexible",
+        "days_available": "{n} days available"
+    },
+    "filters": {
+        "distance": {
+            "label": "Distance",
+            "anywhere": "Anywhere",
+            "players_found": "{n} players found",
+            "no_players_found": "No players found",
+            "close": "Close",
+            "far": "Far"
+        }
+    },
+    "chat": {
+        "type_message": "Type a message...",
+        "no_messages": "No messages yet. Say hi! 👋",
+        "time": {
+            "just_now": "Just now",
+            "min_ago": "{n} min ago",
+            "hour_ago": "{n}h ago"
+        }
+    },
+    "discover": {
+        "title": "Discover Players",
+        "subtitle": "Find your perfect match nearby",
+        "location_prompt": "Enable location to find players near you",
+        "enable_location": "Enable Location",
+        "empty_state": {
+            "title": "No players found",
+            "description": "Try adjusting your filters or check back later."
+        },
+        "distance_unit": "km",
+        "smart_empty_state": {
+            "title": "No Players Within {dist} km",
+            "description": "But there are {count} players within {nextDist} km",
+            "expand": "Expand to {dist} km",
+            "refresh": "Refresh"
+        },
+        "location_required": {
+            "title": "Location Required",
+            "description": "Enable location to discover tennis players near you and see how far they are.",
+            "how_to_fix": "How to fix:",
+            "steps": {
+                "1": "Click the 🔒 icon in your browser's address bar",
+                "2": "Look for \"Location\" permission",
+                "3": "Change it to \"Allow\"",
+                "4": "Refresh this page and try again"
+            },
+            "button": {
+                "loading": "Getting location...",
+                "retry": "Try Again",
+                "enable": "Enable Location"
+            },
+            "privacy_note": "Your exact location is never shared. Only distance is shown to other players."
+        },
+        "match_modal": {
+            "title": "It's a Match!",
+            "subtitle": "You both liked each other!",
+            "keep_playing": "Keep Playing",
+            "view_match": "View Match"
+        },
+        "card": {
+            "location_not_set": "Location not set",
+            "liked_you": "Liked You",
+            "availability": "Availability",
+            "about": "About",
+            "no_bio": "No bio yet",
+            "view_more": "View More",
+            "view_less": "View Less"
+        },
+        "actions": {
+            "pass": "Pass",
+            "match": "Match"
+        }
+    }
+}

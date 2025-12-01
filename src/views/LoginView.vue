@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const email = ref('')
 const password = ref('')
@@ -23,7 +25,7 @@ const handleLogin = async () => {
   successMessage.value = ''
   
   if (!email.value || !password.value) {
-    error.value = 'Please fill in all fields'
+    error.value = t('login.errors.fill_all')
     return
   }
 
@@ -35,7 +37,7 @@ const handleLogin = async () => {
     
     // Check if email is verified
     if (authStore.user && !authStore.user.email_confirmed_at) {
-      error.value = 'Please verify your email before logging in. Check your inbox for the verification link.'
+      error.value = t('login.errors.verify_email')
       
       // Try to logout, but ignore errors if session is already gone
       try {
@@ -49,7 +51,7 @@ const handleLogin = async () => {
     
     router.push('/discover')
   } catch (e: any) {
-    error.value = e.message || 'Invalid email or password'
+    error.value = e.message || t('login.errors.invalid_credentials')
   } finally {
     loading.value = false
   }
@@ -62,7 +64,7 @@ const handleGoogleLogin = async () => {
   try {
     await authStore.loginWithGoogle()
   } catch (e: any) {
-    error.value = e.message || 'Failed to sign in with Google'
+    error.value = e.message || t('login.errors.google_failed')
     loading.value = false
   }
 }
@@ -76,13 +78,13 @@ const handleGoogleLogin = async () => {
           <Trophy class="h-8 w-8 text-primary" />
           <h1 class="text-3xl font-bold">TennisMate</h1>
         </div>
-        <p class="text-muted-foreground">Welcome back! Sign in to continue</p>
+        <p class="text-muted-foreground">{{ t('login.welcome') }}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+          <CardTitle>{{ t('login.title') }}</CardTitle>
+          <CardDescription>{{ t('login.subtitle') }}</CardDescription>
         </CardHeader>
         
         <CardContent>
@@ -98,7 +100,7 @@ const handleGoogleLogin = async () => {
             </div>
 
             <div class="space-y-2">
-              <Label for="email">Email</Label>
+              <Label for="email">{{ t('login.email_label') }}</Label>
               <Input
                 id="email"
                 type="email"
@@ -109,7 +111,7 @@ const handleGoogleLogin = async () => {
             </div>
 
             <div class="space-y-2">
-              <Label for="password">Password</Label>
+              <Label for="password">{{ t('login.password_label') }}</Label>
               <Input
                 id="password"
                 type="password"
@@ -120,7 +122,7 @@ const handleGoogleLogin = async () => {
             </div>
 
             <Button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white" :disabled="loading">
-              {{ loading ? 'Signing in...' : 'Sign In' }}
+              {{ loading ? t('login.submitting_button') : t('login.submit_button') }}
             </Button>
           </form>
 
@@ -131,7 +133,7 @@ const handleGoogleLogin = async () => {
               </div>
               <div class="relative flex justify-center text-xs uppercase">
                 <span class="bg-background px-2 text-muted-foreground">
-                  or
+                  {{ t('login.or_divider') }}
                 </span>
               </div>
             </div>
@@ -147,7 +149,7 @@ const handleGoogleLogin = async () => {
               <svg class="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
                 <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
               </svg>
-              Continue with Google
+              {{ t('login.google_button') }}
             </Button>
 
             <div class="relative">
@@ -156,13 +158,13 @@ const handleGoogleLogin = async () => {
               </div>
               <div class="relative flex justify-center text-xs uppercase">
                 <span class="bg-background px-2 text-muted-foreground">
-                  New to TennisMate?
+                  {{ t('login.new_user') }}
                 </span>
               </div>
             </div>
 
             <Button variant="outline" class="w-full" @click="router.push('/register')">
-              Create an Account
+              {{ t('login.create_account') }}
             </Button>
           </div>
         </CardContent>

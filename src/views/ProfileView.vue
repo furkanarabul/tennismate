@@ -13,8 +13,11 @@ import { supabase } from '@/lib/supabase'
 import AvailabilityPicker from '@/components/AvailabilityPicker.vue'
 import AvatarUpload from '@/components/AvatarUpload.vue'
 
+import { useI18n } from 'vue-i18n'
+
 const authStore = useAuthStore()
 const router = useRouter()
+const { t } = useI18n()
 const loading = ref(true)
 const saving = ref(false)
 const isEditing = ref(false)
@@ -40,11 +43,11 @@ const formData = ref({
   age: null as number | null
 })
 
-const skillLevelOptions = [
-  { value: 'Beginner', label: 'Beginner' },
-  { value: 'Intermediate', label: 'Intermediate' },
-  { value: 'Advanced', label: 'Advanced' }
-]
+const skillLevelOptions = computed(() => [
+  { value: 'Beginner', label: t('profile.skill_levels.beginner') },
+  { value: 'Intermediate', label: t('profile.skill_levels.intermediate') },
+  { value: 'Advanced', label: t('profile.skill_levels.advanced') }
+])
 
 // Mask email
 const maskedEmail = computed(() => {
@@ -190,163 +193,153 @@ onMounted(async () => {
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
     <div class="max-w-2xl mx-auto">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-8">
-        <h1 class="text-3xl font-bold tracking-tight">My Profile</h1>
-        <div class="flex gap-3">
+      <div class="mb-8 flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold">{{ t('profile.title') }}</h1>
+          <p class="text-muted-foreground">{{ t('profile.subtitle') }}</p>
+        </div>
+        <div class="flex items-center gap-2">
           <template v-if="!isEditing">
-            <Button variant="outline" @click="startEditing" :disabled="loading">
-              <Edit2 class="h-4 w-4 mr-2" />
-              Edit Profile
+            <Button @click="startEditing" variant="outline" class="gap-2">
+              <Edit2 class="h-4 w-4" />
+              {{ t('profile.actions.edit') }}
             </Button>
-            <Button variant="outline" @click="handleLogout">
-              <LogOut class="h-4 w-4 mr-2" />
-              Logout
+            <Button variant="destructive" @click="handleLogout" class="gap-2">
+              <LogOut class="h-4 w-4" />
+              {{ t('profile.actions.logout') }}
             </Button>
           </template>
           <template v-else>
-            <Button @click="saveProfile" :disabled="saving">
-              <Save class="h-4 w-4 mr-2" />
-              {{ saving ? 'Saving...' : 'Save' }}
-            </Button>
             <Button variant="outline" @click="cancelEditing" :disabled="saving">
-              <X class="h-4 w-4 mr-2" />
-              Cancel
+              {{ t('profile.actions.cancel') }}
+            </Button>
+            <Button @click="saveProfile" :disabled="saving" class="gap-2">
+              <Save class="h-4 w-4" />
+              {{ saving ? 'Saving...' : t('profile.actions.save') }}
             </Button>
           </template>
         </div>
       </div>
 
-      <Card>
-        <CardHeader class="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
-          <div class="flex items-center gap-4">
-            <div class="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-border">
-              <img
-                v-if="profile.avatar_url"
-                :src="profile.avatar_url"
-                alt="Profile photo"
-                class="w-full h-full object-cover"
-              />
-              <UserIcon v-else class="h-10 w-10 text-primary" />
-            </div>
-            <div>
-              <CardTitle class="text-2xl">{{ loading ? 'Loading...' : profile.name }}</CardTitle>
-              <CardDescription class="text-base mt-1">{{ maskedEmail }}</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        
-        <CardContent class="space-y-6">
-          <!-- View Mode -->
-          <template v-if="!isEditing">
-            <div>
-              <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <Trophy class="h-4 w-4" />
-                <span>Skill Level</span>
-              </div>
-              <p class="font-medium">{{ profile.skillLevel || 'Not set' }}</p>
-            </div>
-
-            <div>
-              <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <MapPin class="h-4 w-4" />
-                <span>Location</span>
-              </div>
-              <p class="font-medium">{{ profile.location || 'Not set' }}</p>
-            </div>
-
-            <div>
-              <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <Hash class="h-4 w-4" />
-                <span>Age</span>
-              </div>
-              <p class="font-medium">{{ profile.age || 'Not set' }}</p>
-            </div>
-
-            <div>
-              <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <UserIcon class="h-4 w-4" />
-                <span>About</span>
-              </div>
-              <p class="text-muted-foreground">{{ profile.bio || 'No bio yet' }}</p>
-            </div>
-
-            <div>
-              <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <Calendar class="h-4 w-4" />
-                <span>Availability</span>
-              </div>
-              <div v-if="profile.availability && profile.availability.length > 0" class="space-y-2">
-                <div v-for="slot in profile.availability" :key="slot.day" class="flex items-center gap-2">
-                  <span class="font-medium">{{ slot.day }}:</span>
-                  <span class="text-muted-foreground">{{ slot.timeSlots.join(', ') || 'Any time' }}</span>
-                </div>
-              </div>
-              <p v-else class="text-muted-foreground">Not set</p>
-            </div>
-          </template>
-
-          <!-- Edit Mode -->
-          <template v-else>
-            <div class="space-y-2">
-              <Label>Profile Photo</Label>
+      <div class="grid gap-6 md:grid-cols-[300px_1fr]">
+        <!-- Sidebar / Basic Info -->
+        <Card class="h-fit">
+          <CardHeader>
+            <CardTitle>{{ t('profile.sections.basic_info') }}</CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-6">
+            <!-- Avatar -->
+            <div class="flex flex-col items-center">
               <AvatarUpload
                 v-if="authStore.user"
                 :user-id="authStore.user.id"
-                :current-avatar-url="formData.avatar_url"
-                @update:avatar-url="(url) => formData.avatar_url = url"
+                :current-avatar-url="isEditing ? formData.avatar_url : profile.avatar_url"
+                @update:avatar-url="(url) => { if(isEditing) formData.avatar_url = url }"
+                :editable="isEditing"
               />
             </div>
 
-            <div class="space-y-2">
-              <Label for="skill-level">Skill Level</Label>
-              <Select
-                id="skill-level"
-                v-model="formData.skillLevel"
-                :options="skillLevelOptions"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-4">
               <div class="space-y-2">
-                <Label for="location">Location</Label>
-                <Input
-                  id="location"
-                  v-model="formData.location"
-                  placeholder="San Francisco, CA"
+                <Label>{{ t('profile.labels.name') }}</Label>
+                <Input 
+                  v-if="isEditing" 
+                  v-model="profile.name" 
+                  disabled 
+                  class="bg-muted"
                 />
+                <div v-else class="font-medium">{{ profile.name }}</div>
               </div>
-              
+
               <div class="space-y-2">
-                <Label for="age">Age</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  v-model="formData.age"
-                  placeholder="25"
-                  min="18"
-                  max="100"
-                />
+                <Label>{{ t('profile.labels.email') }}</Label>
+                <div class="text-sm text-muted-foreground break-all">
+                  {{ maskedEmail }}
+                </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div class="space-y-2">
-              <Label for="bio">About</Label>
-              <Textarea
-                id="bio"
-                v-model="formData.bio"
-                placeholder="Tell others about your tennis experience..."
-                :rows="4"
-                :maxlength="500"
+        <!-- Main Content -->
+        <div class="space-y-6">
+          <!-- Tennis Profile -->
+          <Card>
+            <CardHeader>
+              <CardTitle>{{ t('profile.sections.tennis_profile') }}</CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <Label>{{ t('profile.labels.skill_level') }}</Label>
+                  <Select v-if="isEditing" v-model="formData.skillLevel" :options="skillLevelOptions" />
+                  <div v-else class="flex items-center gap-2">
+                    <Trophy class="h-4 w-4 text-primary" />
+                    <span>{{ profile.skillLevel }}</span>
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <Label>{{ t('profile.labels.age') }}</Label>
+                  <Input 
+                    v-if="isEditing" 
+                    v-model.number="formData.age" 
+                    type="number" 
+                    :placeholder="t('profile.placeholders.age')"
+                  />
+                  <div v-else class="flex items-center gap-2">
+                    <UserIcon class="h-4 w-4 text-muted-foreground" />
+                    <span>{{ profile.age || '-' }}</span>
+                  </div>
+                </div>
+
+                <div class="space-y-2 md:col-span-2">
+                  <Label>{{ t('profile.labels.location') }}</Label>
+                  <div v-if="isEditing" class="relative">
+                    <MapPin class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      v-model="formData.location" 
+                      class="pl-9" 
+                      :placeholder="t('profile.placeholders.location')"
+                    />
+                  </div>
+                  <div v-else class="flex items-center gap-2">
+                    <MapPin class="h-4 w-4 text-muted-foreground" />
+                    <span>{{ profile.location || '-' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <Label>{{ t('profile.labels.bio') }}</Label>
+                <Textarea 
+                  v-if="isEditing" 
+                  v-model="formData.bio" 
+                  :placeholder="t('profile.placeholders.bio')"
+                  :rows="4"
+                />
+                <p v-else class="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {{ profile.bio || 'No bio yet.' }}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Availability -->
+          <Card>
+            <CardHeader>
+              <CardTitle>{{ t('profile.sections.availability') }}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AvailabilityPicker 
+                :model-value="isEditing ? formData.availability : profile.availability"
+                @update:model-value="(val) => { if(isEditing) formData.availability = val }"
+                :readonly="!isEditing"
               />
-            </div>
-
-            <div class="space-y-2">
-              <Label>Availability</Label>
-              <AvailabilityPicker v-model="formData.availability" />
-            </div>
-          </template>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   </div>
 </template>

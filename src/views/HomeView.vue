@@ -6,48 +6,52 @@ import { useRouter } from 'vue-router'
 import { onMounted, nextTick, ref } from 'vue'
 import gsap from 'gsap'
 
-const router = useRouter()
+import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
 
-const features = [
+const router = useRouter()
+const { t } = useI18n()
+
+const features = computed(() => [
   {
     icon: Users,
-    title: 'Smart Matching',
-    description: 'Find players who match your skill level and location preferences.'
+    title: t('home.features.items.smart_matching.title'),
+    description: t('home.features.items.smart_matching.description')
   },
   {
     icon: Calendar,
-    title: 'Availability',
-    description: 'Set your playing schedule and see when others are free to play.'
+    title: t('home.features.items.availability.title'),
+    description: t('home.features.items.availability.description')
   },
   {
     icon: MapPin,
-    title: 'Location Based',
-    description: 'Discover tennis partners in your immediate area with distance filtering.'
+    title: t('home.features.items.location.title'),
+    description: t('home.features.items.location.description')
   },
   {
     icon: Trophy,
-    title: 'Skill Levels',
-    description: 'Filter players by NTRP rating or general skill level (Beginner to Pro).'
+    title: t('home.features.items.skill_levels.title'),
+    description: t('home.features.items.skill_levels.description')
   }
-]
+])
 
-const steps = [
+const steps = computed(() => [
   {
     icon: Search,
-    title: 'Discover',
-    description: 'Browse players in your area based on location and skill level.'
+    title: t('home.how_it_works.steps.1.title'),
+    description: t('home.how_it_works.steps.1.description')
   },
   {
     icon: MessageCircle,
-    title: 'Connect',
-    description: 'Send a match request or chat to coordinate a time to play.'
+    title: t('home.how_it_works.steps.2.title'),
+    description: t('home.how_it_works.steps.2.description')
   },
   {
     icon: Trophy,
-    title: 'Play',
-    description: 'Meet on the court, enjoy the game, and expand your tennis network.'
+    title: t('home.how_it_works.steps.3.title'),
+    description: t('home.how_it_works.steps.3.description')
   }
-]
+])
 
 const handleGetStarted = () => {
   router.push('/discover')
@@ -100,7 +104,7 @@ onMounted(() => {
     )
 
     // Animate Steps sequentially
-    steps.forEach((_, index) => {
+    steps.value.forEach((_, index) => {
       howItWorksTl.fromTo(`.step-${index} .step-icon`,
         { scale: 0, opacity: 0 },
         { scale: 1, opacity: 1, duration: 0.8, ease: 'back.out(1.7)' },
@@ -171,18 +175,17 @@ onMounted(() => {
           
           <div class="hero-content-fade inline-flex items-center rounded-full border border-green-500/30 bg-green-500/10 px-4 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 backdrop-blur-xl">
             <Trophy class="h-4 w-4 mr-2 text-green-600 dark:text-green-500" />
-            Find Your Perfect Tennis Partner
+            {{ t('home.hero.badge') }}
           </div>
           
           <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-foreground dark:text-white perspective-500">
-            <span class="hero-word inline-block">Match.</span>
-            <span class="hero-word inline-block ml-3 md:ml-6">Play.</span>
-            <span class="hero-word text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700 dark:from-green-400 dark:to-emerald-600 inline-block ml-3 md:ml-6">Win.</span>
+            <span class="hero-word inline-block">{{ t('home.hero.word1') }}</span>
+            <span class="hero-word inline-block ml-3 md:ml-6">{{ t('home.hero.word2') }}</span>
+            <span class="hero-word text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700 dark:from-green-400 dark:to-emerald-600 inline-block ml-3 md:ml-6">{{ t('home.hero.word3') }}</span>
           </h1>
           
           <p class="hero-content-fade text-xl text-muted-foreground dark:text-gray-300 max-w-[600px] md:text-2xl leading-relaxed">
-            Connect with local players, schedule matches, and level up your game. 
-            TennisMate makes finding your next opponent effortless.
+            {{ t('home.hero.subtitle') }}
           </p>
           
           <div class="hero-content-fade flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-4">
@@ -190,12 +193,12 @@ onMounted(() => {
             <div class="relative inline-flex group overflow-hidden rounded-full p-[2px]">
               <span class="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#0000_0%,#0000_85%,rgba(255,255,255,0.3)_100%)]" />
               <Button size="lg" class="relative h-14 px-8 text-lg bg-green-600 hover:bg-green-500 text-white rounded-full shadow-lg shadow-green-900/20 w-full transition-transform md:group-hover:scale-105 duration-300" @click="handleGetStarted">
-                Start Matching
+                {{ t('home.hero.start_matching') }}
                 <ArrowRight class="ml-2 h-5 w-5" />
               </Button>
             </div>
             <Button size="lg" variant="outline" class="h-14 px-8 text-lg rounded-full border-input dark:border-white/20 text-foreground dark:text-white hover:bg-accent/50 dark:bg-white/5 dark:hover:bg-white/20 backdrop-blur-md transition-all md:hover:scale-105">
-              Learn More
+              {{ t('home.hero.learn_more') }}
             </Button>
           </div>
 
@@ -212,10 +215,10 @@ onMounted(() => {
       <div class="container mx-auto px-4 md:px-6 relative z-10">
         <div class="text-center mb-16 reveal-on-scroll">
           <h2 class="text-3xl md:text-5xl font-bold mb-4 text-foreground dark:bg-clip-text dark:text-transparent dark:bg-gradient-to-b dark:from-white dark:to-white/60">
-            Everything you need to play
+            {{ t('home.features.title') }}
           </h2>
           <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Powerful features designed to help you spend less time organizing and more time playing.
+            {{ t('home.features.subtitle') }}
           </p>
         </div>
 
@@ -246,8 +249,8 @@ onMounted(() => {
       <div class="absolute inset-0 bg-dot-pattern pointer-events-none"></div>
       <div class="container mx-auto px-4 md:px-6">
         <div class="text-center mb-20">
-          <h2 class="text-3xl md:text-5xl font-bold mb-4 text-foreground dark:text-white">How it Works</h2>
-          <p class="text-muted-foreground text-lg">Get on the court in 3 simple steps</p>
+          <h2 class="text-3xl md:text-5xl font-bold mb-4 text-foreground dark:text-white">{{ t('home.how_it_works.title') }}</h2>
+          <p class="text-muted-foreground text-lg">{{ t('home.how_it_works.subtitle') }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative max-w-5xl mx-auto">
@@ -299,13 +302,13 @@ onMounted(() => {
       
       <div class="container mx-auto px-4 md:px-6 relative z-10 text-center reveal-on-scroll">
         <h2 class="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-          Ready to serve?
+          {{ t('home.cta.title') }}
         </h2>
         <p class="text-green-100 text-xl max-w-2xl mx-auto mb-10">
-          Join thousands of tennis enthusiasts and find your perfect match today.
+          {{ t('home.cta.subtitle') }}
         </p>
         <Button size="lg" class="h-16 px-10 text-lg bg-white text-green-700 hover:bg-green-50 rounded-full shadow-2xl transition-all hover:scale-105 font-bold" @click="handleGetStarted">
-          Join TennisMate Now
+          {{ t('home.cta.button') }}
         </Button>
       </div>
     </section>

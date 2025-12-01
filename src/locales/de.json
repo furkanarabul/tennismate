@@ -1,0 +1,230 @@
+{
+    "home": {
+        "hero": {
+            "badge": "Finde deinen perfekten Tennispartner",
+            "word1": "Matchen.",
+            "word2": "Spielen.",
+            "word3": "Gewinnen.",
+            "subtitle": "Verbinde dich mit lokalen Spielern, plane Matches und verbessere dein Spiel. TennisMate macht die Suche nach deinem nächsten Gegner mühelos.",
+            "start_matching": "Jetzt Matchen",
+            "learn_more": "Mehr Erfahren"
+        },
+        "features": {
+            "title": "Alles was du zum Spielen brauchst",
+            "subtitle": "Leistungsstarke Funktionen, damit du weniger Zeit mit Organisieren und mehr Zeit mit Spielen verbringst.",
+            "items": {
+                "smart_matching": {
+                    "title": "Smart Matching",
+                    "description": "Finde Spieler, die deinem Spielniveau und deinen Standortpräferenzen entsprechen."
+                },
+                "availability": {
+                    "title": "Verfügbarkeit",
+                    "description": "Lege deinen Spielplan fest und sieh, wann andere Zeit haben."
+                },
+                "location": {
+                    "title": "Standortbasiert",
+                    "description": "Entdecke Tennispartner in deiner unmittelbaren Umgebung mit Distanzfilter."
+                },
+                "skill_levels": {
+                    "title": "Spielstärken",
+                    "description": "Filtere Spieler nach NTRP-Rating oder allgemeinem Spielniveau (Anfänger bis Profi)."
+                }
+            }
+        },
+        "how_it_works": {
+            "title": "Wie es funktioniert",
+            "subtitle": "In 3 einfachen Schritten auf den Platz",
+            "steps": {
+                "1": {
+                    "title": "Entdecken",
+                    "description": "Finde Spieler in deiner Nähe basierend auf Spielstärke und Verfügbarkeit."
+                },
+                "2": {
+                    "title": "Verbinden",
+                    "description": "Chatte, plane Matches und baue dein Tennis-Netzwerk auf."
+                },
+                "3": {
+                    "title": "Spielen",
+                    "description": "Triff dich auf dem Platz und genieße das Spiel."
+                }
+            }
+        },
+        "cta": {
+            "title": "Bereit zum Aufschlag?",
+            "subtitle": "Schließe dich tausenden Tennisbegeisterten an und finde noch heute dein perfektes Match.",
+            "button": "Jetzt TennisMate beitreten"
+        }
+    },
+    "app": {
+        "nav": {
+            "home": "Startseite",
+            "discover": "Entdecken",
+            "matches": "Matches",
+            "profile": "Profil"
+        }
+    },
+    "login": {
+        "welcome": "Willkommen zurück! Melde dich an, um fortzufahren",
+        "title": "Anmelden",
+        "subtitle": "Gib deine Anmeldedaten ein, um auf dein Konto zuzugreifen",
+        "email_label": "E-Mail",
+        "password_label": "Passwort",
+        "submit_button": "Anmelden",
+        "submitting_button": "Anmelden...",
+        "or_divider": "oder",
+        "google_button": "Weiter mit Google",
+        "new_user": "Neu bei TennisMate?",
+        "create_account": "Konto erstellen",
+        "errors": {
+            "fill_all": "Bitte fülle alle Felder aus",
+            "verify_email": "Bitte bestätige deine E-Mail vor dem Anmelden. Überprüfe deinen Posteingang auf den Bestätigungslink.",
+            "invalid_credentials": "Ungültige E-Mail oder Passwort",
+            "google_failed": "Anmeldung mit Google fehlgeschlagen"
+        }
+    },
+    "dashboard": {
+        "title": "Deine Matches",
+        "subtitle": "Verbinde dich und spiele mit deinen Tennispartnern",
+        "empty_state": {
+            "title": "Noch keine Matches",
+            "description": "Fange an zu swipen, um Tennispartner zu finden!",
+            "button": "Spieler Entdecken"
+        },
+        "card": {
+            "location_not_set": "Standort nicht festgelegt",
+            "matched": "Gematched",
+            "message": "Nachricht",
+            "play": "Spielen"
+        },
+        "dates": {
+            "today": "Heute",
+            "yesterday": "Gestern",
+            "days_ago": "vor {n} Tagen",
+            "weeks_ago": "vor {n} Wochen",
+            "recently": "Kürzlich"
+        }
+    },
+    "profile": {
+        "title": "Dein Profil",
+        "subtitle": "Verwalte dein Tennisprofil und deine Einstellungen",
+        "edit_mode": "Profil bearbeiten",
+        "view_mode": "Profil ansehen",
+        "sections": {
+            "basic_info": "Basisinfo",
+            "tennis_profile": "Tennisprofil",
+            "about": "Über dich",
+            "availability": "Verfügbarkeit"
+        },
+        "labels": {
+            "name": "Vollständiger Name",
+            "age": "Alter",
+            "location": "Standort",
+            "skill_level": "Spielstärke",
+            "bio": "Bio",
+            "email": "E-Mail"
+        },
+        "placeholders": {
+            "name": "Dein Name",
+            "age": "z.B. 25",
+            "location": "Stadt, Land",
+            "bio": "Erzähl uns von deinem Spielstil, Lieblingsbelag, etc."
+        },
+        "actions": {
+            "edit": "Profil bearbeiten",
+            "save": "Änderungen speichern",
+            "cancel": "Abbrechen",
+            "logout": "Abmelden"
+        },
+        "skill_levels": {
+            "beginner": "Anfänger",
+            "intermediate": "Fortgeschritten",
+            "advanced": "Profi"
+        }
+    },
+    "consent": {
+        "title": "Datenschutz & Standort",
+        "description": "Wir nutzen deinen Standort, um Tennispartner in der Nähe zu finden. Dein genauer Standort wird sicher gespeichert und nur für das Matching verwendet. Du kannst ablehnen, aber standortbasierte Funktionen werden deaktiviert.",
+        "accept": "Akzeptieren & Aktivieren",
+        "decline": "Ablehnen"
+    },
+    "common": {
+        "loading": "Laden...",
+        "error": "Fehler",
+        "success": "Erfolg",
+        "not_set": "Nicht festgelegt",
+        "flexible": "Flexibel",
+        "days_available": "{n} Tage verfügbar"
+    },
+    "filters": {
+        "distance": {
+            "label": "Entfernung",
+            "anywhere": "Überall",
+            "players_found": "{n} Spieler gefunden",
+            "no_players_found": "Keine Spieler gefunden",
+            "close": "Nah",
+            "far": "Fern"
+        }
+    },
+    "chat": {
+        "type_message": "Nachricht schreiben...",
+        "no_messages": "Noch keine Nachrichten. Sag Hallo! 👋",
+        "time": {
+            "just_now": "Gerade eben",
+            "min_ago": "vor {n} Min",
+            "hour_ago": "vor {n} Std"
+        }
+    },
+    "discover": {
+        "title": "Spieler Entdecken",
+        "subtitle": "Finde dein perfektes Match in der Nähe",
+        "location_prompt": "Standort aktivieren, um Spieler in deiner Nähe zu finden",
+        "enable_location": "Standort aktivieren",
+        "empty_state": {
+            "title": "Keine Spieler gefunden",
+            "description": "Versuche deine Filter anzupassen oder schaue später wieder vorbei."
+        },
+        "distance_unit": "km",
+        "smart_empty_state": {
+            "title": "Keine Spieler im Umkreis von {dist} km",
+            "description": "Aber es gibt {count} Spieler im Umkreis von {nextDist} km",
+            "expand": "Auf {dist} km erweitern",
+            "refresh": "Aktualisieren"
+        },
+        "location_required": {
+            "title": "Standort Erforderlich",
+            "description": "Aktiviere deinen Standort, um Tennisspieler in deiner Nähe zu entdecken und zu sehen, wie weit sie entfernt sind.",
+            "how_to_fix": "So behebst du das Problem:",
+            "steps": {
+                "1": "Klicke auf das 🔒-Symbol in der Adressleiste deines Browsers",
+                "2": "Suche nach der Berechtigung \"Standort\"",
+                "3": "Ändere sie auf \"Zulassen\"",
+                "4": "Aktualisiere diese Seite und versuche es erneut"
+            },
+            "button": {
+                "loading": "Standort wird abgerufen...",
+                "retry": "Erneut versuchen",
+                "enable": "Standort aktivieren"
+            },
+            "privacy_note": "Dein genauer Standort wird niemals geteilt. Anderen Spielern wird nur die Entfernung angezeigt."
+        },
+        "match_modal": {
+            "title": "Es ist ein Match!",
+            "subtitle": "Ihr habt euch beide geliked!",
+            "keep_playing": "Weiter spielen",
+            "view_match": "Match ansehen"
+        },
+        "card": {
+            "location_not_set": "Standort nicht festgelegt",
+            "liked_you": "Hat dich geliked",
+            "availability": "Verfügbarkeit",
+            "about": "Über",
+            "no_bio": "Noch keine Bio",
+            "view_more": "Mehr anzeigen",
+            "view_less": "Weniger anzeigen"
+        },
+        "actions": {
+            "pass": "Passen",
+            "match": "Matchen"
+        }
+    }
+}

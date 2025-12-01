@@ -1,0 +1,230 @@
+{
+    "home": {
+        "hero": {
+            "badge": "Mükemmel Tenis Partnerini Bul",
+            "word1": "Eşleş.",
+            "word2": "Oyna.",
+            "word3": "Kazan.",
+            "subtitle": "Yerel oyuncularla tanış, maç ayarla ve oyununu geliştir. TennisMate bir sonraki rakibini bulmayı zahmetsiz hale getirir.",
+            "start_matching": "Eşleşmeye Başla",
+            "learn_more": "Daha Fazla Bilgi"
+        },
+        "features": {
+            "title": "Oynamak için ihtiyacın olan her şey",
+            "subtitle": "Organizasyona daha az, oynamaya daha çok zaman ayırman için tasarlandı.",
+            "items": {
+                "smart_matching": {
+                    "title": "Akıllı Eşleşme",
+                    "description": "Yetenek seviyene ve konum tercihlerine uyan oyuncuları bul."
+                },
+                "availability": {
+                    "title": "Uygunluk",
+                    "description": "Oyun programını ayarla ve diğerlerinin ne zaman müsait olduğunu gör."
+                },
+                "location": {
+                    "title": "Konum Bazlı",
+                    "description": "Mesafe filtreleme ile yakın çevrendeki tenis partnerlerini keşfet."
+                },
+                "skill_levels": {
+                    "title": "Yetenek Seviyeleri",
+                    "description": "Oyuncuları NTRP puanına veya genel yetenek seviyesine göre filtrele."
+                }
+            }
+        },
+        "how_it_works": {
+            "title": "Nasıl Çalışır?",
+            "subtitle": "3 basit adımda korta çık",
+            "steps": {
+                "1": {
+                    "title": "Keşfet",
+                    "description": "Bölgende yetenek seviyesi ve uygunluğa göre oyuncular bul."
+                },
+                "2": {
+                    "title": "Bağlan",
+                    "description": "Sohbet et, maç planla ve tenis ağını genişlet."
+                },
+                "3": {
+                    "title": "Oyna",
+                    "description": "Kortta buluş ve sevdiğin oyunun tadını çıkar."
+                }
+            }
+        },
+        "cta": {
+            "title": "Servis atmaya hazır mısın?",
+            "subtitle": "Binlerce tenis tutkununa katıl ve mükemmel eşleşmeni bugün bul.",
+            "button": "TennisMate'e Katıl"
+        }
+    },
+    "app": {
+        "nav": {
+            "home": "Ana Sayfa",
+            "discover": "Keşfet",
+            "matches": "Maçlar",
+            "profile": "Profil"
+        }
+    },
+    "login": {
+        "welcome": "Tekrar hoş geldin! Devam etmek için giriş yap",
+        "title": "Giriş Yap",
+        "subtitle": "Hesabına erişmek için bilgilerini gir",
+        "email_label": "E-posta",
+        "password_label": "Şifre",
+        "submit_button": "Giriş Yap",
+        "submitting_button": "Giriş yapılıyor...",
+        "or_divider": "veya",
+        "google_button": "Google ile Devam Et",
+        "new_user": "TennisMate'te yeni misin?",
+        "create_account": "Hesap Oluştur",
+        "errors": {
+            "fill_all": "Lütfen tüm alanları doldurun",
+            "verify_email": "Giriş yapmadan önce lütfen e-postanızı doğrulayın. Doğrulama bağlantısı için gelen kutunuzu kontrol edin.",
+            "invalid_credentials": "Geçersiz e-posta veya şifre",
+            "google_failed": "Google ile giriş yapılamadı"
+        }
+    },
+    "dashboard": {
+        "title": "Maçların",
+        "subtitle": "Tenis partnerlerinle bağlan ve oyna",
+        "empty_state": {
+            "title": "Henüz maç yok",
+            "description": "Tenis partnerleri bulmak için kaydırmaya başla!",
+            "button": "Oyuncuları Keşfet"
+        },
+        "card": {
+            "location_not_set": "Konum ayarlanmadı",
+            "matched": "Eşleşildi",
+            "message": "Mesaj",
+            "play": "Oyna"
+        },
+        "dates": {
+            "today": "Bugün",
+            "yesterday": "Dün",
+            "days_ago": "{n} gün önce",
+            "weeks_ago": "{n} hafta önce",
+            "recently": "Yakın zamanda"
+        }
+    },
+    "profile": {
+        "title": "Profilin",
+        "subtitle": "Tenis profilini ve tercihlerini yönet",
+        "edit_mode": "Profili Düzenle",
+        "view_mode": "Profili Görüntüle",
+        "sections": {
+            "basic_info": "Temel Bilgiler",
+            "tennis_profile": "Tenis Profili",
+            "about": "Hakkında",
+            "availability": "Uygunluk"
+        },
+        "labels": {
+            "name": "Ad Soyad",
+            "age": "Yaş",
+            "location": "Konum",
+            "skill_level": "Yetenek Seviyesi",
+            "bio": "Biyografi",
+            "email": "E-posta"
+        },
+        "placeholders": {
+            "name": "Adın",
+            "age": "örn. 25",
+            "location": "Şehir, Ülke",
+            "bio": "Oyun stilinden, favori kortundan bahset..."
+        },
+        "actions": {
+            "edit": "Profili Düzenle",
+            "save": "Değişiklikleri Kaydet",
+            "cancel": "İptal",
+            "logout": "Çıkış Yap"
+        },
+        "skill_levels": {
+            "beginner": "Başlangıç",
+            "intermediate": "Orta",
+            "advanced": "İleri"
+        }
+    },
+    "consent": {
+        "title": "Gizlilik ve Konum",
+        "description": "Yakınındaki tenis partnerlerini bulmak için konumunu kullanıyoruz. Hassas konumun güvenli bir şekilde saklanır ve sadece eşleşme için kullanılır. Reddedebilirsin, ancak konum tabanlı özellikler devre dışı kalır.",
+        "accept": "Kabul Et ve Etkinleştir",
+        "decline": "Reddet"
+    },
+    "common": {
+        "loading": "Yükleniyor...",
+        "error": "Hata",
+        "success": "Başarılı",
+        "not_set": "Ayarlanmadı",
+        "flexible": "Esnek",
+        "days_available": "{n} gün uygun"
+    },
+    "filters": {
+        "distance": {
+            "label": "Mesafe",
+            "anywhere": "Her Yerde",
+            "players_found": "{n} oyuncu bulundu",
+            "no_players_found": "Oyuncu bulunamadı",
+            "close": "Yakın",
+            "far": "Uzak"
+        }
+    },
+    "chat": {
+        "type_message": "Bir mesaj yaz...",
+        "no_messages": "Henüz mesaj yok. Merhaba de! 👋",
+        "time": {
+            "just_now": "Az önce",
+            "min_ago": "{n} dk önce",
+            "hour_ago": "{n} sa önce"
+        }
+    },
+    "discover": {
+        "title": "Oyuncuları Keşfet",
+        "subtitle": "Yakınındaki mükemmel rakibi bul",
+        "location_prompt": "Yakınındaki oyuncuları bulmak için konumu etkinleştir",
+        "enable_location": "Konumu Etkinleştir",
+        "empty_state": {
+            "title": "Oyuncu bulunamadı",
+            "description": "Filtrelerini değiştirmeyi dene veya daha sonra tekrar kontrol et."
+        },
+        "distance_unit": "km",
+        "smart_empty_state": {
+            "title": "{dist} km içinde oyuncu yok",
+            "description": "Ama {nextDist} km içinde {count} oyuncu var",
+            "expand": "{dist} km'ye genişlet",
+            "refresh": "Yenile"
+        },
+        "location_required": {
+            "title": "Konum Gerekli",
+            "description": "Yakınındaki tenis oyuncularını keşfetmek ve ne kadar uzakta olduklarını görmek için konumu etkinleştir.",
+            "how_to_fix": "Nasıl düzeltilir:",
+            "steps": {
+                "1": "Tarayıcının adres çubuğundaki 🔒 simgesine tıkla",
+                "2": "\"Konum\" iznini bul",
+                "3": "\"İzin Ver\" olarak değiştir",
+                "4": "Bu sayfayı yenile ve tekrar dene"
+            },
+            "button": {
+                "loading": "Konum alınıyor...",
+                "retry": "Tekrar Dene",
+                "enable": "Konumu Etkinleştir"
+            },
+            "privacy_note": "Tam konumun asla paylaşılmaz. Diğer oyunculara sadece mesafe gösterilir."
+        },
+        "match_modal": {
+            "title": "Eşleşme!",
+            "subtitle": "İkiniz de birbirinizi beğendiniz!",
+            "keep_playing": "Oynamaya Devam Et",
+            "view_match": "Maçı Görüntüle"
+        },
+        "card": {
+            "location_not_set": "Konum ayarlanmadı",
+            "liked_you": "Seni Beğendi",
+            "availability": "Uygunluk",
+            "about": "Hakkında",
+            "no_bio": "Henüz biyografi yok",
+            "view_more": "Daha Fazla",
+            "view_less": "Daha Az"
+        },
+        "actions": {
+            "pass": "Pas",
+            "match": "Eşleş"
+        }
+    }
+}
