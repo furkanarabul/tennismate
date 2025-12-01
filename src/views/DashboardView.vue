@@ -133,7 +133,7 @@ const formatMatchDate = (dateString: string) => {
       </div>
 
       <!-- Empty State -->
-      <Card v-else class="text-center py-16 border-dashed border-2">
+      <Card v-else class="text-center py-16 border-dashed border-2 hover:bg-primary/5 hover:border-primary/50 transition-colors duration-300">
         <CardContent>
           <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
             <Users class="h-10 w-10 text-primary" />
