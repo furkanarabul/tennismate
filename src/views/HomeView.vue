@@ -252,22 +252,38 @@ onMounted(() => {
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative max-w-5xl mx-auto">
           <!-- Connecting Line (Desktop) -->
-          <div class="connecting-line hidden md:block absolute top-12 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-transparent via-green-500/50 to-transparent z-0"></div>
+          <!-- Connecting Line (Desktop) -->
+          <div class="connecting-line hidden md:block absolute top-12 left-[10%] right-[10%] h-0.5 bg-green-500/10 z-0 overflow-hidden rounded-full">
+            <div class="absolute top-0 bottom-0 w-1/2 bg-gradient-to-r from-transparent via-green-500 to-transparent animate-flow-line"></div>
+          </div>
+
+          <!-- Connecting Line (Mobile) -->
+          <div class="connecting-line-mobile block md:hidden absolute top-12 bottom-12 left-1/2 w-0.5 -translate-x-1/2 bg-green-500/10 z-0 overflow-hidden rounded-full">
+            <div class="absolute left-0 right-0 h-1/2 bg-gradient-to-b from-transparent via-green-500 to-transparent animate-flow-line-vertical"></div>
+          </div>
 
           <div 
             v-for="(step, index) in steps" 
             :key="index"
-            :class="`step-${index} relative flex flex-col items-center text-center z-10`"
+            :class="[
+              `step-${index} relative z-10`,
+              'grid grid-cols-[1fr_auto_1fr] gap-4 items-center w-full',
+              'md:flex md:flex-col md:items-center md:text-center'
+            ]"
           >
-            <div class="step-icon w-24 h-24 rounded-full bg-background dark:bg-black border-2 border-green-500/20 flex items-center justify-center mb-8 relative shadow-[0_0_30px_-5px_rgba(16,185,129,0.2)] group hover:border-green-500/50 transition-colors duration-300">
+            <div class="step-icon w-24 h-24 rounded-full bg-background dark:bg-black border-2 border-green-500/20 flex items-center justify-center col-start-2 mb-0 md:mb-8 relative shadow-[0_0_30px_-5px_rgba(16,185,129,0.2)] group hover:border-green-500/50 transition-colors duration-300">
               <component :is="step.icon" class="h-10 w-10 text-green-600 dark:text-green-500 group-hover:scale-110 transition-transform duration-300" />
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold border-4 border-background dark:border-black shadow-sm">
                 {{ index + 1 }}
               </div>
             </div>
-            <div class="step-content">
-              <h3 class="text-2xl font-bold mb-3 text-foreground dark:text-white">{{ step.title }}</h3>
-              <p class="text-muted-foreground max-w-xs leading-relaxed">{{ step.description }}</p>
+            <div :class="[
+              'step-content row-start-1 md:row-auto',
+              index % 2 === 0 ? 'col-start-1 text-right pr-4' : 'col-start-3 text-left pl-4',
+              'md:col-auto md:text-center md:px-0'
+            ]">
+              <h3 class="text-2xl font-bold mb-3 text-foreground dark:text-white inline-block bg-background dark:bg-[#020817] px-2 rounded md:bg-transparent md:dark:bg-transparent md:px-0">{{ step.title }}</h3>
+              <p class="text-muted-foreground max-w-xs leading-relaxed inline-block bg-background dark:bg-[#020817] px-2 rounded md:bg-transparent md:dark:bg-transparent md:px-0">{{ step.description }}</p>
             </div>
           </div>
         </div>
@@ -311,5 +327,23 @@ onMounted(() => {
 /* Light mode adjustment if needed */
 :root:not(.dark) .bg-dot-pattern {
   background-image: radial-gradient(circle, rgba(0, 0, 0, 0.1) 1.5px, transparent 1.5px);
+}
+
+.animate-flow-line {
+  animation: flow-line 6s linear infinite;
+}
+
+.animate-flow-line-vertical {
+  animation: flow-line-vertical 6s linear infinite;
+}
+
+@keyframes flow-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes flow-line-vertical {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
 }
 </style>
