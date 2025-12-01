@@ -20,7 +20,7 @@ export function useGeolocation() {
         return 'geolocation' in navigator
     })
 
-    const getCurrentPosition = async (): Promise<GeolocationCoordinates | null> => {
+    const getCurrentPosition = async (retrying = false): Promise<GeolocationCoordinates | null> => {
         // Check for consent first
         const consent = localStorage.getItem('tennis_mate_consent')
         if (consent === 'declined') {
@@ -42,7 +42,7 @@ export function useGeolocation() {
         loading.value = true
         error.value = null
 
-        console.log('🗺️ Requesting location...')
+        console.log(`🗺️ Requesting location... ${retrying ? '(Retry with High Accuracy)' : ''}`)
 
         try {
             const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -50,9 +50,10 @@ export function useGeolocation() {
                     resolve,
                     reject,
                     {
-                        enableHighAccuracy: false, // Changed to false for faster response
-                        timeout: 30000, // Increased to 30 seconds
-                        maximumAge: 60000 // Use cached location up to 1 minute old
+                        // On retry, force high accuracy which often resolves "Location Unknown" on macOS/iOS
+                        enableHighAccuracy: retrying,
+                        timeout: retrying ? 15000 : 10000, // Shorter timeout for first attempt
+                        maximumAge: retrying ? 0 : 60000 // Force fresh on retry
                     }
                 )
             })
@@ -68,6 +69,14 @@ export function useGeolocation() {
             return coordinates.value
         } catch (err: any) {
             console.error('❌ Location error:', err)
+
+            // Retry logic for Position Unavailable (2) or Timeout (3)
+            // This is common on macOS Safari/Chrome when "Low Power Mode" is on or Wi-Fi triangulation fails
+            if (!retrying && (err.code === 2 || err.code === 3)) {
+                console.log('🔄 Retrying location with high accuracy...')
+                return getCurrentPosition(true)
+            }
+
             const geoError: LocationError = {
                 code: err.code || 0,
                 message: getErrorMessage(err.code)
@@ -75,7 +84,7 @@ export function useGeolocation() {
             error.value = geoError
             return null
         } finally {
-            loading.value = false
+            if (!retrying) loading.value = false
         }
     }
 
@@ -84,7 +93,7 @@ export function useGeolocation() {
             case 1:
                 return 'Location permission denied. Please enable location access in your browser settings.'
             case 2:
-                return 'Location unavailable. Please check your device settings.'
+                return 'Location unavailable. Try refreshing or checking your device settings (Wi-Fi/GPS).'
             case 3:
                 return 'Location request timed out. Please try again.'
             default:
