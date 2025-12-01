@@ -326,7 +326,7 @@ onMounted(() => {
 
 /* Light mode adjustment if needed */
 :root:not(.dark) .bg-dot-pattern {
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.1) 1.5px, transparent 1.5px);
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.05) 1.5px, transparent 1.5px);
 }
 
 .animate-flow-line {
