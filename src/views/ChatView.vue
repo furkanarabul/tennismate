@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useMatching } from '@/composables/useMatching'
 import { useChat, type Message } from '@/composables/useChat'
+import { useNotificationStore } from '@/stores/notifications'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,8 +15,9 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const { getMatches } = useMatching()
-const { getMessages, sendMessage, subscribeToMessages, unsubscribe } = useChat()
+const { getMessages, sendMessage, subscribeToMessages, unsubscribe, markAsRead, markMatchMessagesAsRead } = useChat()
 const { t } = useI18n()
+const notificationStore = useNotificationStore()
 
 const matchId = route.params.matchId as string
 const messages = ref<Message[]>([])
@@ -42,11 +44,22 @@ onMounted(async () => {
   // Load message history
   messages.value = await getMessages(matchId)
   scrollToBottom()
+  
+  // Mark as read (all messages in this match)
+  if (authStore.user) {
+    await markMatchMessagesAsRead(matchId, authStore.user.id)
+    notificationStore.markMatchAsRead(matchId)
+  }
 
   // Subscribe to new messages
   subscribeToMessages(matchId, (newMsg) => {
     messages.value.push(newMsg)
     nextTick(() => scrollToBottom())
+    
+    // If we receive a message while in chat, mark it as read immediately if it's not ours
+    if (newMsg.sender_id !== authStore.user?.id) {
+      markAsRead(newMsg.id) // Use message ID here, not match ID
+    }
   })
 })
 

@@ -6,12 +6,14 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useMatching } from '@/composables/useMatching'
+import { useNotificationStore } from '@/stores/notifications'
 import { supabase } from '@/lib/supabase'
 
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 const { getMatches } = useMatching()
 const { t } = useI18n()
 
@@ -26,6 +28,9 @@ onMounted(async () => {
   
   matches.value = await getMatches(authStore.user.id)
   loading.value = false
+  
+  // Ensure notifications are fresh
+  notificationStore.fetchUnreadCounts()
 })
 
 const getSkillLevelLabel = (level: string) => {
@@ -73,7 +78,15 @@ const formatMatchDate = (dateString: string) => {
           class="group"
         >
           <!-- Card -->
-          <Card class="h-full overflow-hidden bg-card border-2">
+          <Card class="h-full overflow-hidden bg-card border-2 relative">
+            <!-- Unread Badge -->
+            <div 
+              v-if="notificationStore.getUnreadCount(match.matchId) > 0"
+              class="absolute top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm ring-2 ring-background"
+            >
+              <MessageCircle class="h-3.5 w-3.5 fill-current" />
+            </div>
+
             <CardHeader class="pb-4">
               <div class="flex items-start gap-4">
                 <!-- Avatar -->

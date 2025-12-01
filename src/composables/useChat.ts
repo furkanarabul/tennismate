@@ -157,12 +157,34 @@ export const useChat = () => {
         }
     }
 
+    /**
+     * Mark all unread messages in a match as read
+     */
+    const markMatchMessagesAsRead = async (matchId: string, currentUserId: string): Promise<boolean> => {
+        try {
+            const { error: updateError } = await supabase
+                .from('messages')
+                .update({ read: true })
+                .eq('match_id', matchId)
+                .eq('read', false)
+                .neq('sender_id', currentUserId) // Only mark messages sent by others
+
+            if (updateError) throw updateError
+
+            return true
+        } catch (e: any) {
+            console.error('Error marking match messages as read:', e)
+            return false
+        }
+    }
+
     return {
         loading,
         error,
         getMessages,
         sendMessage,
         markAsRead,
+        markMatchMessagesAsRead,
         subscribeToMessages,
         unsubscribe,
         getUnreadCount
