@@ -154,7 +154,7 @@ watch(() => authStore.user, (user) => {
     </nav>
     
     <!-- PWA Install Prompt -->
-    <InstallPrompt />
+    <!-- <InstallPrompt /> -->
     
     <!-- Privacy Consent Banner -->
     <ConsentBanner />
