@@ -163,7 +163,7 @@ onMounted(() => {
         <img 
           src="/src/assets/tennis_court_hero.png" 
           alt="Tennis Court"
-          class="w-full h-full object-cover opacity-30 dark:opacity-60"
+          class="w-full h-full object-cover opacity-60 dark:opacity-40 mask-gradient"
         />
         <!-- Gradient Overlay -->
         <div class="absolute inset-0 bg-gradient-to-b from-white/90 via-white/60 to-background dark:from-[#020817]/80 dark:via-[#020817]/50 dark:to-[#020817]"></div>
@@ -210,7 +210,7 @@ onMounted(() => {
     <!-- Features Section -->
     <section class="py-24 md:py-32 bg-muted/30 dark:bg-[#020817]/50 relative overflow-hidden">
       <div class="absolute inset-0 bg-dot-pattern pointer-events-none"></div>
-      <div class="absolute inset-0 bg-green-500/5 dark:bg-green-900/5 skew-y-3 transform origin-top-left scale-110"></div>
+      <div class="absolute inset-0 bg-green-500/5 dark:bg-green-900/5"></div>
       
       <div class="container mx-auto px-4 md:px-6 relative z-10">
         <div class="text-center mb-16 reveal-on-scroll">
