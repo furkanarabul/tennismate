@@ -127,6 +127,12 @@ const getSkillStars = (level: string) => {
   }
 }
 
+const getSkillLevelLabel = (level: string) => {
+  if (!level) return ''
+  const key = level.toLowerCase()
+  return t(`profile.skill_levels.${key}`) || level
+}
+
 const isAvailabilityExpanded = ref(false)
 
 const getAvailabilityItems = (availability: string | any[]): string[] => {
@@ -522,7 +528,7 @@ watch(players, () => {
                             class="h-3 w-3 fill-current" 
                           />
                         </div>
-                        <span class="font-semibold text-xs">{{ player.skill_level }}</span>
+                        <span class="font-semibold text-xs">{{ getSkillLevelLabel(player.skill_level) }}</span>
                       </div>
                     </div>
                   </div>
@@ -649,7 +655,7 @@ watch(players, () => {
               <h3 class="text-2xl font-bold mb-1">{{ matchedUser.name }}</h3>
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/20 mb-2">
                 <Trophy class="h-3.5 w-3.5 text-primary" />
-                <span class="text-xs font-medium text-primary">{{ matchedUser.skill_level }}</span>
+                <span class="text-xs font-medium text-primary">{{ getSkillLevelLabel(matchedUser.skill_level) }}</span>
               </div>
               <p class="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                 <MapPin class="h-3.5 w-3.5" />

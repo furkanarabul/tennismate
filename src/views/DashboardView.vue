@@ -28,6 +28,12 @@ onMounted(async () => {
   loading.value = false
 })
 
+const getSkillLevelLabel = (level: string) => {
+  if (!level) return ''
+  const key = level.toLowerCase()
+  return t(`profile.skill_levels.${key}`) || level
+}
+
 const formatMatchDate = (dateString: string) => {
   if (!dateString) return t('dashboard.dates.recently')
   const date = new Date(dateString)
@@ -98,7 +104,7 @@ const formatMatchDate = (dateString: string) => {
                   <!-- Skill badge -->
                   <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/20">
                     <Trophy class="h-3.5 w-3.5 text-primary" />
-                    <span class="text-xs font-medium text-primary">{{ match.skill_level }}</span>
+                    <span class="text-xs font-medium text-primary">{{ getSkillLevelLabel(match.skill_level) }}</span>
                   </div>
                 </div>
               </div>

@@ -46,8 +46,15 @@ const formData = ref({
 const skillLevelOptions = computed(() => [
   { value: 'Beginner', label: t('profile.skill_levels.beginner') },
   { value: 'Intermediate', label: t('profile.skill_levels.intermediate') },
-  { value: 'Advanced', label: t('profile.skill_levels.advanced') }
+  { value: 'Advanced', label: t('profile.skill_levels.advanced') },
+  { value: 'Pro', label: t('profile.skill_levels.pro') }
 ])
+
+const getSkillLevelLabel = (level: string) => {
+  if (!level) return ''
+  const key = level.toLowerCase()
+  return t(`profile.skill_levels.${key}`) || level
+}
 
 // Mask email
 const maskedEmail = computed(() => {
@@ -275,7 +282,7 @@ onMounted(async () => {
                   <Select v-if="isEditing" v-model="formData.skillLevel" :options="skillLevelOptions" />
                   <div v-else class="flex items-center gap-2">
                     <Trophy class="h-4 w-4 text-primary" />
-                    <span>{{ profile.skillLevel }}</span>
+                    <span>{{ getSkillLevelLabel(profile.skillLevel) }}</span>
                   </div>
                 </div>
 

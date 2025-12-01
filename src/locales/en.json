@@ -138,7 +138,8 @@
         "skill_levels": {
             "beginner": "Beginner",
             "intermediate": "Intermediate",
-            "advanced": "Advanced"
+            "advanced": "Advanced",
+            "pro": "Pro"
         }
     },
     "consent": {
