@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 import gsap from 'gsap'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 interface Props {
   modelValue: number | null // Distance in km, null = no limit
@@ -78,8 +81,8 @@ const handleChange = () => {
 
 // Display text for the current value
 const displayValue = computed(() => {
-  if (sliderValue.value >= 100) return 'Anywhere'
-  return `${sliderValue.value} km`
+  if (sliderValue.value >= 100) return t('filters.distance.anywhere')
+  return `${sliderValue.value} ${t('discover.distance_unit') || 'km'}`
 })
 
 const isMax = computed(() => sliderValue.value >= 100)
@@ -115,7 +118,7 @@ const progress = computed(() => {
     <!-- Main Value Display -->
     <div class="flex flex-col items-center justify-center mb-6">
       <div class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-        Distance
+        {{ t('filters.distance.label') }}
       </div>
       <div 
         ref="valueRef"
@@ -131,7 +134,7 @@ const progress = computed(() => {
           v-if="currentPlayerCount !== null" 
           class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground animate-in fade-in slide-in-from-bottom-2"
         >
-          {{ currentPlayerCount }} players found
+          {{ currentPlayerCount === 0 ? t('filters.distance.no_players_found') : t('filters.distance.players_found', { n: currentPlayerCount }) }}
         </div>
       </div>
     </div>
@@ -179,8 +182,8 @@ const progress = computed(() => {
     
     <!-- Minimal Labels -->
     <div class="flex justify-between text-[10px] font-medium text-muted-foreground/50 px-1 select-none uppercase tracking-widest">
-      <span>Close</span>
-      <span>Far</span>
+      <span>{{ t('filters.distance.close') }}</span>
+      <span>{{ t('filters.distance.far') }}</span>
     </div>
   </div>
 </template>

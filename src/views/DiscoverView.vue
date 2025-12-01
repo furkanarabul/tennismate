@@ -11,9 +11,11 @@ import DistanceFilter from '@/components/DistanceFilter.vue'
 import { useGeolocation } from '@/composables/useGeolocation'
 import { supabase } from '@/lib/supabase'
 import gsap from 'gsap'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 const { getDiscoverUsers, swipeUser, loading } = useMatching()
 
 const players = ref<UserProfile[]>([])
@@ -338,8 +340,17 @@ watch(players, () => {
       />
       
       <div class="mb-8 text-center">
-        <h1 class="text-3xl font-bold mb-2">Discover Players</h1>
-        <p class="text-muted-foreground">Drag cards or use buttons to swipe</p>
+        <h1 class="text-3xl font-bold mb-2">{{ t('discover.title') }}</h1>
+        <p class="text-muted-foreground">{{ t('discover.subtitle') }}</p>
+      </div>
+
+      <!-- Location Prompt -->
+      <div v-if="showLocationPrompt" class="mb-6 p-4 bg-primary/10 rounded-lg flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <MapPin class="h-5 w-5 text-primary" />
+          <p class="text-sm font-medium">{{ t('discover.location_prompt') }}</p>
+        </div>
+        <Button size="sm" @click="requestLocation">{{ t('discover.enable_location') }}</Button>
       </div>
 
       <!-- Location & Distance Filter -->
@@ -363,21 +374,21 @@ watch(players, () => {
             </div>
             
             <div>
-              <h3 class="text-xl font-bold mb-2">Location Required</h3>
+              <h3 class="text-xl font-bold mb-2">{{ t('discover.location_required.title') }}</h3>
               <p class="text-muted-foreground mb-4">
-                Enable location to discover tennis players near you and see how far they are.
+                {{ t('discover.location_required.description') }}
               </p>
             </div>
 
             <div v-if="geoError" class="p-4 text-sm bg-destructive/10 border border-destructive/20 rounded-md space-y-2">
               <p class="font-semibold text-destructive">{{ geoError.message }}</p>
               <div class="text-muted-foreground space-y-1 text-xs">
-                <p class="font-medium">How to fix:</p>
+                <p class="font-medium">{{ t('discover.location_required.how_to_fix') }}</p>
                 <ul class="list-disc list-inside space-y-1">
-                  <li>Click the 🔒 icon in your browser's address bar</li>
-                  <li>Look for "Location" permission</li>
-                  <li>Change it to "Allow"</li>
-                  <li>Refresh this page and try again</li>
+                  <li>{{ t('discover.location_required.steps.1') }}</li>
+                  <li>{{ t('discover.location_required.steps.2') }}</li>
+                  <li>{{ t('discover.location_required.steps.3') }}</li>
+                  <li>{{ t('discover.location_required.steps.4') }}</li>
                 </ul>
               </div>
             </div>
@@ -389,11 +400,11 @@ watch(players, () => {
               :disabled="geoLoading"
             >
               <Navigation class="h-5 w-5 mr-2" />
-              {{ geoLoading ? 'Getting location...' : geoError ? 'Try Again' : 'Enable Location' }}
+              {{ geoLoading ? t('discover.location_required.button.loading') : geoError ? t('discover.location_required.button.retry') : t('discover.location_required.button.enable') }}
             </Button>
 
             <p class="text-xs text-muted-foreground">
-              Your exact location is never shared. Only distance is shown to other players.
+              {{ t('discover.location_required.privacy_note') }}
             </p>
           </CardContent>
         </Card>
@@ -402,31 +413,33 @@ watch(players, () => {
       <!-- Player Cards (only show when location enabled) -->
       <div v-if="userLatitude && !showLocationPrompt">
         <div v-if="loading" class="text-center py-12">
-          <p class="text-lg text-muted-foreground">Loading players...</p>
+          <p class="text-lg text-muted-foreground">{{ t('common.loading') }}</p>
         </div>
 
         <div v-else-if="players.length === 0 || currentIndex >= players.length" class="text-center py-12">
-          <Trophy class="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           
           <!-- Smart Empty State -->
           <div v-if="nextBestRange">
-            <h2 class="text-2xl font-bold mb-2">No Players Within {{ maxDistance }} km</h2>
+            <h2 class="text-2xl font-bold mb-2">{{ t('discover.smart_empty_state.title', { dist: maxDistance }) }}</h2>
             <p class="text-muted-foreground mb-4">
-              But there are {{ playerCounts[nextBestRange] || 0 }} players within {{ nextBestRange }} km
+              {{ t('discover.smart_empty_state.description', { count: playerCounts[nextBestRange] || 0, nextDist: nextBestRange }) }}
             </p>
             <Button @click="maxDistance = nextBestRange" class="mb-2">
-              Expand to {{ nextBestRange }} km
+              {{ t('discover.smart_empty_state.expand', { dist: nextBestRange }) }}
             </Button>
             <Button @click="loadUsers" variant="outline">
-              Refresh
+              {{ t('discover.smart_empty_state.refresh') }}
             </Button>
           </div>
           
           <!-- Regular Empty State -->
-          <div v-else>
-            <h2 class="text-2xl font-bold mb-2">No More Players</h2>
-            <p class="text-muted-foreground mb-6">You've seen all available players for now.</p>
-            <Button @click="loadUsers">Refresh</Button>
+          <div v-else-if="players.length === 0" class="text-center py-12">
+
+            <h3 class="text-xl font-semibold mb-2">{{ t('discover.empty_state.title') }}</h3>
+            <p class="text-muted-foreground mb-6">{{ t('discover.empty_state.description') }}</p>
+            <Button variant="outline" @click="loadUsers">
+              {{ t('discover.smart_empty_state.refresh') }}
+            </Button>
           </div>
         </div>
 
@@ -483,14 +496,14 @@ watch(players, () => {
                           class="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-bold uppercase tracking-wider flex-shrink-0 flex items-center"
                         >
                           <Heart class="h-3 w-3 fill-current mr-1" />
-                          Liked You
+                          {{ t('discover.card.liked_you') }}
                         </div>
                       </div>
 
                       <!-- Location -->
                       <div class="flex items-center gap-1 text-muted-foreground text-sm mb-2">
                         <MapPin class="h-3.5 w-3.5 flex-shrink-0" />
-                        <span class="truncate">{{ player.location || 'Location not set' }}</span>
+                        <span class="truncate">{{ player.location || t('discover.card.location_not_set') }}</span>
                         <span v-if="player.distance != null" class="text-primary font-medium text-xs flex-shrink-0">
                           ({{ player.distance }} km)
                         </span>
@@ -515,8 +528,8 @@ watch(players, () => {
                   <div class="space-y-3">
                     <!-- About Section -->
                     <div class="bg-muted/30 rounded-lg p-3">
-                      <p class="text-xs text-muted-foreground mb-1 font-medium uppercase tracking-wide">About</p>
-                      <p class="text-sm leading-relaxed">{{ player.bio || 'No bio yet' }}</p>
+                      <p class="text-xs text-muted-foreground mb-1 font-medium uppercase tracking-wide">{{ t('discover.card.about') }}</p>
+                      <p class="text-sm leading-relaxed">{{ player.bio || t('discover.card.no_bio') }}</p>
                     </div>
 
                     <!-- Availability Accordion -->
@@ -525,7 +538,7 @@ watch(players, () => {
                         @click.stop="isAvailabilityExpanded = !isAvailabilityExpanded"
                         class="w-full p-3 flex items-center justify-between hover:bg-primary/5 transition-colors"
                       >
-                        <span class="text-sm font-medium text-muted-foreground">Availability</span>
+                        <span class="text-sm font-medium text-muted-foreground">{{ t('discover.card.availability') }}</span>
                         <div class="flex items-center gap-1">
                           <span v-if="!isAvailabilityExpanded" class="text-xs text-primary font-semibold">
                             {{ getAvailabilitySummary(player.availability) }}
@@ -603,9 +616,9 @@ watch(players, () => {
         <Card class="overflow-hidden border-2 border-primary/30 bg-gradient-to-br from-card via-card to-primary/5">
           <CardHeader class="text-center pb-6 pt-8">
             <CardTitle class="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
-              It's a Match!
+              {{ t('discover.match_modal.title') }}
             </CardTitle>
-            <CardDescription class="text-base">You both liked each other!</CardDescription>
+            <CardDescription class="text-base">{{ t('discover.match_modal.subtitle') }}</CardDescription>
           </CardHeader>
           
           <CardContent class="pt-0 pb-8">
@@ -636,7 +649,7 @@ watch(players, () => {
               </div>
               <p class="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                 <MapPin class="h-3.5 w-3.5" />
-                {{ matchedUser.location || 'Location not set' }}
+                {{ matchedUser.location || t('discover.card.location_not_set') }}
               </p>
             </div>
 
@@ -647,14 +660,14 @@ watch(players, () => {
                 class="flex-1 hover:bg-primary/10 hover:border-primary/50 transition-colors" 
                 @click="showMatchModal = false"
               >
-                Keep Playing
+                {{ t('discover.match_modal.keep_playing') }}
               </Button>
               <Button 
                 class="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-opacity" 
                 @click="router.push('/dashboard')"
               >
                 <MessageCircle class="h-4 w-4 mr-2" />
-                View Match
+                {{ t('discover.match_modal.view_match') }}
               </Button>
             </div>
           </CardContent>

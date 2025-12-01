@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { Trophy, Home, Compass, Users, User, Heart, ListTodo } from 'lucide-vue-next'
 import InstallPrompt from '@/components/InstallPrompt.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import ConsentBanner from '@/components/ConsentBanner.vue'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import { detectAndSetLanguage } from '@/utils/language'
+
+onMounted(() => {
+  detectAndSetLanguage()
+})
 </script>
 
 <template>
@@ -18,31 +25,39 @@ import ConsentBanner from '@/components/ConsentBanner.vue'
         
         <nav class="flex items-center gap-6">
           <RouterLink to="/" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Home
+            {{ $t('app.nav.home') }}
           </RouterLink>
           <RouterLink to="/discover" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Discover
+            {{ $t('app.nav.discover') }}
           </RouterLink>
           <RouterLink to="/dashboard" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             <ListTodo class="h-4 w-4" />
-            Matches
+            {{ $t('app.nav.matches') }}
           </RouterLink>
           <RouterLink to="/profile" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             <User class="h-4 w-4" />
-            Profile
+            {{ $t('app.nav.profile') }}
           </RouterLink>
         </nav>
-        <ThemeToggle />
+        <div class="flex items-center gap-2">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
 
     <!-- Mobile Top Header - Minimal -->
     <header class="md:hidden sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
-      <div class="flex h-14 items-center justify-center px-4">
+      <div class="flex h-14 items-center justify-center px-4 relative">
         <RouterLink to="/" class="flex items-center gap-2">
           <Trophy class="h-5 w-5 text-primary" />
           <span class="text-lg font-bold text-foreground">TennisMate</span>
         </RouterLink>
+        
+        <div class="absolute right-4 flex items-center gap-2">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
 
@@ -60,7 +75,7 @@ import ConsentBanner from '@/components/ConsentBanner.vue'
           :class="$route.path === '/' ? 'text-primary' : 'text-muted-foreground'"
         >
           <Home class="h-5 w-5" />
-          <span class="text-xs font-medium">Home</span>
+          <span class="text-xs font-medium">{{ $t('app.nav.home') }}</span>
         </RouterLink>
         
         <RouterLink 
@@ -69,7 +84,7 @@ import ConsentBanner from '@/components/ConsentBanner.vue'
           :class="$route.path === '/discover' ? 'text-primary' : 'text-muted-foreground'"
         >
           <Heart class="h-5 w-5" />
-          <span class="text-xs font-medium">Discover</span>
+          <span class="text-xs font-medium">{{ $t('app.nav.discover') }}</span>
         </RouterLink>
         
         <RouterLink 
@@ -78,7 +93,7 @@ import ConsentBanner from '@/components/ConsentBanner.vue'
           :class="$route.path === '/dashboard' ? 'text-primary' : 'text-muted-foreground'"
         >
           <ListTodo class="h-5 w-5" />
-          <span class="text-xs font-medium">Matches</span>
+          <span class="text-xs font-medium">{{ $t('app.nav.matches') }}</span>
         </RouterLink>
         
         <RouterLink 
@@ -87,7 +102,7 @@ import ConsentBanner from '@/components/ConsentBanner.vue'
           :class="$route.path === '/profile' ? 'text-primary' : 'text-muted-foreground'"
         >
           <User class="h-5 w-5" />
-          <span class="text-xs font-medium">Profile</span>
+          <span class="text-xs font-medium">{{ $t('app.nav.profile') }}</span>
         </RouterLink>
       </div>
     </nav>

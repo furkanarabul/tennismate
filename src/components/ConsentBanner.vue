@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { Button } from '@/components/ui/button'
 import { X, ShieldCheck } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const isVisible = ref(false)
 
 const checkConsent = () => {
@@ -51,9 +53,9 @@ onMounted(() => {
             <ShieldCheck class="h-6 w-6 text-primary" />
           </div>
           <div class="space-y-1">
-            <h3 class="font-semibold text-foreground">Privacy & Location</h3>
+            <h3 class="font-semibold text-foreground">{{ t('consent.title') }}</h3>
             <p class="text-sm text-muted-foreground leading-relaxed">
-              We use your location to find tennis partners nearby. Your precise location is stored securely and only used for matching. You can decline, but location-based features will be disabled.
+              {{ t('consent.description') }}
             </p>
           </div>
         </div>
@@ -64,13 +66,13 @@ onMounted(() => {
             class="flex-1 md:flex-none"
             @click="declineConsent"
           >
-            Decline
+            {{ t('consent.decline') }}
           </Button>
           <Button 
             class="flex-1 md:flex-none"
             @click="acceptConsent"
           >
-            Accept & Enable
+            {{ t('consent.accept') }}
           </Button>
         </div>
 

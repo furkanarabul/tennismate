@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Upload, Image as ImageIcon, X } from 'lucide-vue-next'
+import { Upload, Image as ImageIcon, X, Trash2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 
 interface Props {
   userId: string
   currentAvatarUrl?: string
+  editable?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  editable: true
+})
+
 const emit = defineEmits<{
   'update:avatarUrl': [url: string]
 }>()
@@ -21,6 +25,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const displayUrl = computed(() => previewUrl.value || props.currentAvatarUrl || null)
 
 const openFilePicker = () => {
+  if (!props.editable) return
   fileInput.value?.click()
 }
 
@@ -95,6 +100,7 @@ const uploadAvatar = async (file: File) => {
 }
 
 const handleDrop = async (event: DragEvent) => {
+  if (!props.editable) return
   event.preventDefault()
   const file = event.dataTransfer?.files[0]
   
@@ -110,6 +116,7 @@ const handleDrop = async (event: DragEvent) => {
 }
 
 const handleDragOver = (event: DragEvent) => {
+  if (!props.editable) return
   event.preventDefault()
 }
 
@@ -119,13 +126,24 @@ const removePreview = () => {
     fileInput.value.value = ''
   }
 }
+
+const handleRemove = () => {
+  previewUrl.value = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+  emit('update:avatarUrl', '')
+}
 </script>
 
 <template>
   <div class="flex flex-col items-center gap-4">
     <!-- Avatar Display -->
     <div
-      class="relative group w-32 h-32 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 border-muted cursor-pointer hover:border-primary transition-colors"
+      class="relative group w-32 h-32 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 transition-colors"
+      :class="[
+        editable ? 'cursor-pointer hover:border-primary border-muted' : 'border-transparent'
+      ]"
       @click="openFilePicker"
       @drop="handleDrop"
       @dragover="handleDragOver"
@@ -141,7 +159,10 @@ const removePreview = () => {
       </div>
 
       <!-- Upload overlay -->
-      <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+      <div 
+        v-if="editable"
+        class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+      >
         <Upload class="h-8 w-8 text-white" />
       </div>
 
@@ -158,10 +179,11 @@ const removePreview = () => {
       accept="image/*"
       class="hidden"
       @change="handleFileChange"
+      :disabled="!editable"
     />
 
     <!-- Upload button text -->
-    <div class="text-center">
+    <div v-if="editable" class="text-center">
       <p class="text-sm text-muted-foreground">
         Click or drag & drop to upload
       </p>
@@ -170,15 +192,29 @@ const removePreview = () => {
       </p>
     </div>
 
-    <!-- Remove preview (only if preview exists and not saved) -->
-    <Button
-      v-if="previewUrl && !uploading"
-      variant="outline"
-      size="sm"
-      @click="removePreview"
-    >
-      <X class="h-4 w-4 mr-2" />
-      Cancel
-    </Button>
+    <!-- Action Buttons -->
+    <div v-if="editable && (previewUrl || displayUrl)" class="flex gap-2">
+      <!-- Cancel Preview (Revert to saved) -->
+      <Button
+        v-if="previewUrl && !uploading"
+        variant="outline"
+        size="sm"
+        @click="removePreview"
+      >
+        <X class="h-4 w-4 mr-2" />
+        Cancel
+      </Button>
+
+      <!-- Remove Photo (Clear all) -->
+      <Button
+        v-if="displayUrl && !uploading"
+        variant="destructive"
+        size="sm"
+        @click="handleRemove"
+      >
+        <Trash2 class="h-4 w-4 mr-2" />
+        Remove
+      </Button>
+    </div>
   </div>
 </template>

@@ -8,9 +8,12 @@ import { useAuthStore } from '@/stores/auth'
 import { useMatching } from '@/composables/useMatching'
 import { supabase } from '@/lib/supabase'
 
+import { useI18n } from 'vue-i18n'
+
 const router = useRouter()
 const authStore = useAuthStore()
 const { getMatches } = useMatching()
+const { t } = useI18n()
 
 const matches = ref<any[]>([])
 const loading = ref(true)
@@ -26,16 +29,16 @@ onMounted(async () => {
 })
 
 const formatMatchDate = (dateString: string) => {
-  if (!dateString) return 'Recently'
+  if (!dateString) return t('dashboard.dates.recently')
   const date = new Date(dateString)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays} days ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  if (diffDays === 0) return t('dashboard.dates.today')
+  if (diffDays === 1) return t('dashboard.dates.yesterday')
+  if (diffDays < 7) return t('dashboard.dates.days_ago', { n: diffDays })
+  if (diffDays < 30) return t('dashboard.dates.weeks_ago', { n: Math.floor(diffDays / 7) })
   return date.toLocaleDateString()
 }
 </script>
@@ -46,9 +49,9 @@ const formatMatchDate = (dateString: string) => {
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
-          Your Matches
+          {{ t('dashboard.title') }}
         </h1>
-        <p class="text-muted-foreground">Connect and play with your tennis partners</p>
+        <p class="text-muted-foreground">{{ t('dashboard.subtitle') }}</p>
       </div>
 
       <!-- Loading State -->
@@ -89,7 +92,7 @@ const formatMatchDate = (dateString: string) => {
                   <CardTitle class="text-xl mb-1 truncate">{{ match.name }}</CardTitle>
                   <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <MapPin class="h-3.5 w-3.5 flex-shrink-0" />
-                    <span class="truncate">{{ match.location || 'Location not set' }}</span>
+                    <span class="truncate">{{ match.location || t('dashboard.card.location_not_set') }}</span>
                   </div>
                   
                   <!-- Skill badge -->
@@ -102,55 +105,41 @@ const formatMatchDate = (dateString: string) => {
             </CardHeader>
             
             <CardContent class="pt-0">
-              <!-- Match date -->
-              <div class="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                <Calendar class="h-3.5 w-3.5" />
-                <span>Matched {{ formatMatchDate(match.matchCreatedAt) }}</span>
-              </div>
-
-              <!-- Action buttons -->
-              <div class="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  class="flex-1 hover:bg-primary/10 hover:border-primary/50 transition-colors"
-                  @click="router.push(`/chat/${match.matchId}`)"
-                >
-                  <MessageCircle class="h-4 w-4 mr-2" />
-                  Message
-                </Button>
-                <Button 
-                  size="sm"
-                  class="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-opacity"
-                >
-                  <Calendar class="h-4 w-4 mr-2" />
-                  Play
-                </Button>
+              <div class="mt-4 pt-4 border-t flex items-center justify-between text-sm">
+                <div class="flex items-center text-muted-foreground">
+                  <Calendar class="h-4 w-4 mr-1.5" />
+                  <span>{{ t('dashboard.card.matched') }} {{ formatMatchDate(match.matched_at) }}</span>
+                </div>
               </div>
             </CardContent>
+
+            <!-- Actions -->
+            <div class="p-4 pt-0 flex gap-3">
+              <Button class="flex-1 gap-2" variant="outline" @click="router.push(`/chat/${match.matchId}`)">
+                <MessageCircle class="h-4 w-4" />
+                {{ t('dashboard.card.message') }}
+              </Button>
+              <Button class="flex-1 gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Calendar class="h-4 w-4" />
+                {{ t('dashboard.card.play') }}
+              </Button>
+            </div>
           </Card>
         </div>
       </div>
 
       <!-- Empty State -->
-      <Card v-else class="text-center py-16 border-dashed border-2 hover:bg-primary/5 hover:border-primary/50 transition-colors duration-300">
-        <CardContent>
-          <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-            <Users class="h-10 w-10 text-primary" />
-          </div>
-          <CardTitle class="mb-3 text-2xl">No matches yet</CardTitle>
-          <CardDescription class="mb-6 text-base">
-            Start swiping to find tennis partners!
-          </CardDescription>
-          <Button 
-            @click="router.push('/discover')"
-            class="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-opacity"
-          >
-            <Heart class="h-4 w-4 mr-2" />
-            Discover Players
-          </Button>
-        </CardContent>
-      </Card>
+      <div v-else class="text-center py-24 border-2 border-dashed border-muted-foreground/25 rounded-xl bg-muted/5">
+        <div class="bg-primary/10 rounded-full p-6 inline-flex items-center justify-center mb-6">
+          <Users class="h-10 w-10 text-primary" />
+        </div>
+        <h3 class="text-2xl font-bold mb-2">{{ t('dashboard.empty_state.title') }}</h3>
+        <p class="text-muted-foreground mb-8 text-lg">{{ t('dashboard.empty_state.description') }}</p>
+        <Button size="lg" @click="router.push('/discover')" class="bg-primary text-primary-foreground hover:bg-primary/90">
+          <Heart class="h-4 w-4 mr-2" />
+          {{ t('dashboard.empty_state.button') }}
+        </Button>
+      </div>
     </div>
   </div>
 </template>
