@@ -157,7 +157,13 @@ export const useMatching = () => {
 
             return users
         } catch (err: any) {
-            console.error('Error fetching discover users:', err)
+            console.error('❌ Error fetching discover users:', {
+                message: err.message,
+                code: err.code,
+                details: err.details,
+                hint: err.hint,
+                params: { currentUserId, userLatitude, userLongitude, maxDistance }
+            })
             error.value = err.message || 'Failed to fetch users'
             return []
         } finally {

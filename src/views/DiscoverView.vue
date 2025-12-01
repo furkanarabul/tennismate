@@ -310,8 +310,12 @@ onMounted(async () => {
         return
       }
     }
-  } catch (error) {
-    console.error('Error loading profile:', error)
+  } catch (error: any) {
+    console.error('❌ Error loading profile:', {
+      message: error.message,
+      code: error.code,
+      details: error.details
+    })
   }
 
   // If no saved location, try to request it
