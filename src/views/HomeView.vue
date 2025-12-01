@@ -189,12 +189,12 @@ onMounted(() => {
             <!-- Neon Beam Button Wrapper -->
             <div class="relative inline-flex group overflow-hidden rounded-full p-[2px]">
               <span class="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#0000_0%,#0000_85%,rgba(255,255,255,0.3)_100%)]" />
-              <Button size="lg" class="relative h-14 px-8 text-lg bg-green-600 hover:bg-green-500 text-white rounded-full shadow-lg shadow-green-900/20 w-full transition-transform group-hover:scale-105 duration-300" @click="handleGetStarted">
+              <Button size="lg" class="relative h-14 px-8 text-lg bg-green-600 hover:bg-green-500 text-white rounded-full shadow-lg shadow-green-900/20 w-full transition-transform md:group-hover:scale-105 duration-300" @click="handleGetStarted">
                 Start Matching
                 <ArrowRight class="ml-2 h-5 w-5" />
               </Button>
             </div>
-            <Button size="lg" variant="outline" class="h-14 px-8 text-lg rounded-full border-input dark:border-white/20 text-foreground dark:text-white hover:bg-accent/50 dark:bg-white/5 dark:hover:bg-white/20 backdrop-blur-md transition-all hover:scale-105">
+            <Button size="lg" variant="outline" class="h-14 px-8 text-lg rounded-full border-input dark:border-white/20 text-foreground dark:text-white hover:bg-accent/50 dark:bg-white/5 dark:hover:bg-white/20 backdrop-blur-md transition-all md:hover:scale-105">
               Learn More
             </Button>
           </div>
