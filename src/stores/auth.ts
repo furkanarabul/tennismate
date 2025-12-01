@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import { useNotificationStore } from './notifications'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<User | null>(null)
@@ -102,6 +103,10 @@ export const useAuthStore = defineStore('auth', () => {
         } finally {
             // Always clear user state, even if API call fails
             user.value = null
+
+            // Reset notifications
+            const notificationStore = useNotificationStore()
+            notificationStore.reset()
         }
     }
 

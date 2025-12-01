@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { Trophy, Home, Compass, Users, User, Heart, ListTodo, Loader2 } from 'lucide-vue-next'
 import InstallPrompt from '@/components/InstallPrompt.vue'
@@ -7,8 +7,12 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 import ConsentBanner from '@/components/ConsentBanner.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import { detectIpLanguage } from '@/utils/language'
+import { useNotificationStore } from '@/stores/notifications'
+import { useAuthStore } from '@/stores/auth'
 
 const loading = ref(true)
+const notificationStore = useNotificationStore()
+const authStore = useAuthStore()
 
 onMounted(async () => {
   // Check if we already have a stored language preference
@@ -21,6 +25,18 @@ onMounted(async () => {
     // If first visit, wait for IP detection to avoid flash of wrong language
     await detectIpLanguage()
     loading.value = false
+  }
+  
+  // Initialize notifications if user is logged in
+  if (authStore.user) {
+    notificationStore.initialize()
+  }
+})
+
+// Watch for auth changes to init/reset notifications
+watch(() => authStore.user, (user) => {
+  if (user) {
+    notificationStore.initialize()
   }
 })
 </script>
@@ -50,9 +66,14 @@ onMounted(async () => {
           <RouterLink to="/discover" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             {{ $t('app.nav.discover') }}
           </RouterLink>
-          <RouterLink to="/dashboard" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+          <RouterLink to="/dashboard" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 relative">
             <ListTodo class="h-4 w-4" />
             {{ $t('app.nav.matches') }}
+            <!-- Notification Badge -->
+            <span 
+              v-if="notificationStore.totalUnreadCount > 0" 
+              class="absolute -top-0.5 -right-1 flex h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background"
+            ></span>
           </RouterLink>
           <RouterLink to="/profile" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
             <User class="h-4 w-4" />
@@ -109,11 +130,16 @@ onMounted(async () => {
         
         <RouterLink 
           to="/dashboard"
-          class="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors"
+          class="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative"
           :class="$route.path === '/dashboard' ? 'text-primary' : 'text-muted-foreground'"
         >
           <ListTodo class="h-5 w-5" />
           <span class="text-xs font-medium">{{ $t('app.nav.matches') }}</span>
+          <!-- Notification Badge Mobile -->
+          <span 
+            v-if="notificationStore.totalUnreadCount > 0" 
+            class="absolute top-3 right-8 flex h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background"
+          ></span>
         </RouterLink>
         
         <RouterLink 
