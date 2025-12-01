@@ -10,12 +10,17 @@ import { useAuthStore } from './stores/auth'
 import { useThemeStore } from './stores/theme'
 import i18n from './i18n'
 
+import { initializeLanguage } from './utils/language'
+
 const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
 app.use(i18n)
+
+// Initialize language (sync check for localStorage/browser)
+initializeLanguage()
 
 // Initialize theme
 const themeStore = useThemeStore()

@@ -1,20 +1,40 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
-import { Trophy, Home, Compass, Users, User, Heart, ListTodo } from 'lucide-vue-next'
+import { Trophy, Home, Compass, Users, User, Heart, ListTodo, Loader2 } from 'lucide-vue-next'
 import InstallPrompt from '@/components/InstallPrompt.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import ConsentBanner from '@/components/ConsentBanner.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
-import { detectAndSetLanguage } from '@/utils/language'
+import { detectIpLanguage } from '@/utils/language'
 
-onMounted(() => {
-  detectAndSetLanguage()
+const loading = ref(true)
+
+onMounted(async () => {
+  // Check if we already have a stored language preference
+  const hasStoredLanguage = localStorage.getItem('user-language')
+  
+  if (hasStoredLanguage) {
+    // If we have a stored language, we can load immediately
+    loading.value = false
+  } else {
+    // If first visit, wait for IP detection to avoid flash of wrong language
+    await detectIpLanguage()
+    loading.value = false
+  }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-background pb-16 md:pb-0">
+  <!-- Loading State -->
+  <div v-if="loading" class="min-h-screen bg-background flex items-center justify-center">
+    <div class="flex flex-col items-center gap-4">
+      <Trophy class="h-12 w-12 text-primary animate-pulse" />
+      <Loader2 class="h-6 w-6 text-muted-foreground animate-spin" />
+    </div>
+  </div>
+
+  <div v-else class="min-h-screen bg-background pb-16 md:pb-0">
     <!-- Desktop Header - Hidden on mobile -->
     <header class="hidden md:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div class="mx-auto max-w-7xl flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">

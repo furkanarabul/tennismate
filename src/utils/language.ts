@@ -4,7 +4,7 @@ const SUPPORTED_LANGUAGES = ['en', 'tr', 'de']
 const DEFAULT_LANGUAGE = 'en'
 const STORAGE_KEY = 'user-language'
 
-export async function detectAndSetLanguage() {
+export function initializeLanguage() {
     // 1. Check LocalStorage
     const storedLang = localStorage.getItem(STORAGE_KEY)
     if (storedLang && SUPPORTED_LANGUAGES.includes(storedLang)) {
@@ -12,7 +12,19 @@ export async function detectAndSetLanguage() {
         return
     }
 
-    // 2. Check IP (if no stored preference)
+    // 2. Fallback to Browser Language (Instant, but don't persist yet)
+    const browserLang = (navigator.language || DEFAULT_LANGUAGE).split('-')[0] || DEFAULT_LANGUAGE
+    if (SUPPORTED_LANGUAGES.includes(browserLang)) {
+        setLanguage(browserLang, false)
+    } else {
+        setLanguage(DEFAULT_LANGUAGE, false)
+    }
+}
+
+export async function detectIpLanguage() {
+    // If we already have a stored preference, don't overwrite it with IP guess
+    if (localStorage.getItem(STORAGE_KEY)) return
+
     try {
         const response = await fetch('https://ipapi.co/json/')
         if (response.ok) {
@@ -27,24 +39,17 @@ export async function detectAndSetLanguage() {
                 detectedLang = 'de'
             }
 
-            // Only set if it's different from default, or just set it to be explicit
+            // If detected language is different from what we initialized with (Browser), update and persist
+            // Or if it's the same, we should probably persist it now so we don't check IP every time?
+            // Let's persist it regardless to save the "auto-detected" preference
             setLanguage(detectedLang)
-            return
         }
     } catch (error) {
         console.warn('IP language detection failed:', error)
     }
-
-    // 3. Fallback to Browser Language
-    const browserLang = (navigator.language || DEFAULT_LANGUAGE).split('-')[0] || DEFAULT_LANGUAGE
-    if (SUPPORTED_LANGUAGES.includes(browserLang)) {
-        setLanguage(browserLang)
-    } else {
-        setLanguage(DEFAULT_LANGUAGE)
-    }
 }
 
-export function setLanguage(lang: string) {
+export function setLanguage(lang: string, persist = true) {
     if (!SUPPORTED_LANGUAGES.includes(lang)) return
 
     // Update i18n instance
@@ -55,7 +60,9 @@ export function setLanguage(lang: string) {
     document.documentElement.lang = lang
 
     // Persist
-    localStorage.setItem(STORAGE_KEY, lang)
+    if (persist) {
+        localStorage.setItem(STORAGE_KEY, lang)
+    }
 }
 
 export function getCurrentLanguage() {
