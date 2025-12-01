@@ -295,9 +295,13 @@ onMounted(() => {
 
     <!-- CTA Section -->
     <section class="py-24 relative overflow-hidden">
-      <div class="absolute inset-0 bg-green-600 z-0">
-        <div class="absolute inset-0 bg-[url('/src/assets/grid.svg')] opacity-20"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+      <div class="absolute inset-0 bg-green-900 z-0">
+        <img 
+          src="/src/assets/tennis_court_cta_v6.png" 
+          alt="Tennis Court Background" 
+          class="w-full h-full object-cover opacity-10"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
       </div>
       
       <div class="container mx-auto px-4 md:px-6 relative z-10 text-center reveal-on-scroll">
