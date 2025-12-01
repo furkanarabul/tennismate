@@ -104,8 +104,9 @@ export const useNotificationStore = defineStore('notifications', () => {
                         // We can check if the matchId exists in our known matches (from fetchUnreadCounts)
                         // or just optimistically fetch counts again.
                         // Let's just increment if we track this match
-                        if (matchUnreadCounts.value[newMessage.match_id] !== undefined) {
-                            matchUnreadCounts.value[newMessage.match_id]++
+                        const currentCount = matchUnreadCounts.value[newMessage.match_id]
+                        if (currentCount !== undefined) {
+                            matchUnreadCounts.value[newMessage.match_id] = currentCount + 1
                         } else {
                             // New match? or we just haven't loaded it. Refresh all.
                             await fetchUnreadCounts()
