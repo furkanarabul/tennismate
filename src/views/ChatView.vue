@@ -92,6 +92,12 @@ const formatTime = (timestamp: string) => {
 const isMyMessage = (msg: Message) => {
   return msg.sender_id === authStore.user?.id
 }
+
+const getSkillLevelLabel = (level: string) => {
+  if (!level) return ''
+  const key = level.toLowerCase()
+  return t(`profile.skill_levels.${key}`) || level
+}
 </script>
 
 <template>
@@ -117,7 +123,7 @@ const isMyMessage = (msg: Message) => {
           </div>
           <div>
             <h2 class="font-semibold">{{ matchedUser.name }}</h2>
-            <p class="text-xs text-muted-foreground">{{ matchedUser.skill_level }}</p>
+            <p class="text-xs text-muted-foreground">{{ getSkillLevelLabel(matchedUser.skill_level) }}</p>
           </div>
         </div>
       </div>
