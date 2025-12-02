@@ -111,6 +111,18 @@ const progress = computed(() => {
   const val = sliderValue.value
   return ((val - min) / (max - min)) * 100
 })
+
+// Find the next best distance with players
+const suggestedDistance = computed(() => {
+  if (!props.allDistances || props.allDistances.length === 0) return null
+  if (currentPlayerCount.value !== 0) return null
+  
+  // Find smallest distance > current slider value
+  const sorted = [...props.allDistances].sort((a, b) => a - b)
+  const next = sorted.find(d => d > sliderValue.value)
+  
+  return next ? Math.ceil(next) : null
+})
 </script>
 
 <template>
@@ -128,14 +140,24 @@ const progress = computed(() => {
         {{ displayValue }}
       </div>
       
-      <!-- Player Count Badge -->
-      <div class="h-6 mt-2">
+      <!-- Player Count Badge & Smart Suggestion -->
+      <div class="h-8 mt-2 flex items-center gap-2">
         <div 
           v-if="currentPlayerCount !== null" 
-          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground animate-in fade-in slide-in-from-bottom-2"
+          class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors duration-300"
+          :class="currentPlayerCount === 0 ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'"
         >
           {{ currentPlayerCount === 0 ? t('filters.distance.no_players_found') : t('filters.distance.players_found', { n: currentPlayerCount }) }}
         </div>
+
+        <!-- Smart Suggestion Button -->
+        <button
+          v-if="currentPlayerCount === 0 && suggestedDistance"
+          @click="emit('update:modelValue', suggestedDistance)"
+          class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors cursor-pointer animate-in fade-in slide-in-from-left-2"
+        >
+          Try {{ suggestedDistance }} km?
+        </button>
       </div>
     </div>
     
