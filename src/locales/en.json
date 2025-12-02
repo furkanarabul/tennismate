@@ -156,7 +156,8 @@
         "success": "Success",
         "not_set": "Not set",
         "flexible": "Flexible",
-        "days_available": "{n} days available"
+        "days_available": "{n} days available",
+        "cancel": "Cancel"
     },
     "filters": {
         "distance": {
