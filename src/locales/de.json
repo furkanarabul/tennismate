@@ -94,7 +94,9 @@
             "location_not_set": "Standort nicht festgelegt",
             "matched": "Gematched",
             "message": "Nachricht",
-            "play": "Spielen"
+            "play": "Match Vorschlagen",
+            "scheduled": "Geplant",
+            "pending": "Ausstehend"
         },
         "dates": {
             "today": "Heute",
@@ -241,5 +243,37 @@
             "bio": "Bio",
             "availability": "Verfügbarkeit"
         }
+    },
+    "proposal": {
+        "create_title": "Match Vorschlagen",
+        "date": "Datum",
+        "time": "Uhrzeit",
+        "court": "Platz",
+        "court_placeholder": "z.B. Stadtpark Plätze",
+        "send": "Vorschlag Senden",
+        "accept": "Akzeptieren",
+        "decline": "Ablehnen",
+        "cancel": "Abbrechen",
+        "cancel_match": "Match Absagen",
+        "status": {
+            "pending": "Vorschlag Ausstehend",
+            "accepted": "Match Geplant!",
+            "declined": "Vorschlag Abgelehnt",
+            "cancelled": "Vorschlag Abgebrochen"
+        },
+        "banner": {
+            "waiting": "Warte auf Antwort...",
+            "received": "Neuer Match-Vorschlag"
+        }
+    },
+    "match_details": {
+        "title": "Match-Details",
+        "scheduled_with": "Match mit {name}",
+        "subtitle": "Alles bereit! Hier sind die Details.",
+        "pending_title": "Vorschlag Gesendet",
+        "pending_subtitle": "Warte darauf, dass {name} deinen Vorschlag akzeptiert.",
+        "received_title": "Match-Vorschlag",
+        "received_subtitle": "{name} möchte ein Match mit dir spielen!",
+        "calendar_description": "Tennis-Match mit {name} via TennisMate"
     }
 }

@@ -7,7 +7,10 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useMatching } from '@/composables/useMatching'
 import { useNotificationStore } from '@/stores/notifications'
+import { useMatchProposal } from '@/composables/useMatchProposal'
 import { supabase } from '@/lib/supabase'
+import MatchProposalModal from '@/components/MatchProposalModal.vue'
+import MatchDetailsModal from '@/components/MatchDetailsModal.vue'
 
 import { useI18n } from 'vue-i18n'
 
@@ -15,10 +18,16 @@ const router = useRouter()
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 const { getMatches } = useMatching()
+const { createProposal, getActiveProposalsForMatches, respondToProposal } = useMatchProposal()
 const { t } = useI18n()
 
 const matches = ref<any[]>([])
+const activeProposals = ref<Record<string, any>>({})
 const loading = ref(true)
+const showProposalModal = ref(false)
+const showDetailsModal = ref(false)
+const proposalLoading = ref(false)
+const selectedMatch = ref<any>(null)
 
 onMounted(async () => {
   if (!authStore.user) {
@@ -27,6 +36,21 @@ onMounted(async () => {
   }
   
   matches.value = await getMatches(authStore.user.id)
+  
+  // Fetch active proposals for these matches
+  if (matches.value.length > 0) {
+    const matchIds = matches.value.map(m => m.matchId)
+    const proposals = await getActiveProposalsForMatches(matchIds)
+    
+    // Map proposals to matches (prefer accepted, then pending)
+    proposals.forEach(p => {
+      const current = activeProposals.value[p.match_id]
+      if (!current || (current.status === 'pending' && p.status === 'accepted')) {
+        activeProposals.value[p.match_id] = p
+      }
+    })
+  }
+  
   loading.value = false
   
   // Ensure notifications are fresh
@@ -51,6 +75,79 @@ const formatMatchDate = (dateString: string) => {
   if (diffDays < 7) return t('dashboard.dates.days_ago', { n: diffDays })
   if (diffDays < 30) return t('dashboard.dates.weeks_ago', { n: Math.floor(diffDays / 7) })
   return date.toLocaleDateString()
+}
+
+const getProposalStatus = (matchId: string) => {
+  return activeProposals.value[matchId]
+}
+
+const openProposalModal = (match: any) => {
+  selectedMatch.value = match
+  const proposal = getProposalStatus(match.matchId)
+  
+  if (proposal) {
+    // If there's already a proposal, show details instead of chat redirect
+    showDetailsModal.value = true
+    return
+  }
+  
+  showProposalModal.value = true
+}
+
+const handleCreateProposal = async (data: { date: string; time: string; court: string }) => {
+  if (!authStore.user || !selectedMatch.value) return
+  
+  proposalLoading.value = true
+  const scheduledAt = new Date(`${data.date}T${data.time}`).toISOString()
+  
+  const proposal = await createProposal(
+    selectedMatch.value.matchId,
+    authStore.user.id,
+    selectedMatch.value.id, // This is the other user's ID from getMatches
+    scheduledAt,
+    data.court
+  )
+  
+  if (proposal) {
+    showProposalModal.value = false
+    // Update local state to show "Pending" immediately
+    activeProposals.value[selectedMatch.value.matchId] = proposal
+    // Stay on dashboard, maybe show a toast? (For now just update UI)
+  }
+  
+  proposalLoading.value = false
+}
+
+const handleCancelMatch = async (id: string) => {
+  if (!selectedMatch.value) return
+  
+  proposalLoading.value = true
+  await respondToProposal(id, 'cancelled')
+  
+  // Update local state
+  delete activeProposals.value[selectedMatch.value.matchId]
+  showDetailsModal.value = false
+  proposalLoading.value = false
+}
+
+const handleMessageRedirect = () => {
+  if (selectedMatch.value) {
+    router.push(`/chat/${selectedMatch.value.matchId}`)
+  }
+}
+const handleProposalAction = async (id: string, action: 'accepted' | 'declined') => {
+  if (!selectedMatch.value) return
+  
+  proposalLoading.value = true
+  const proposal = await respondToProposal(id, action)
+  
+  if (proposal) {
+    // Update local state
+    activeProposals.value[selectedMatch.value.matchId] = proposal
+    showDetailsModal.value = false
+  }
+  
+  proposalLoading.value = false
 }
 </script>
 
@@ -99,7 +196,7 @@ const formatMatchDate = (dateString: string) => {
                       class="w-full h-full object-cover"
                     />
                     <div v-else class="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                      <User class="h-8 w-8 text-primary" />
+                      <UserIcon class="h-8 w-8 text-primary" />
                     </div>
                   </div>
                   <!-- Online indicator -->
@@ -133,14 +230,33 @@ const formatMatchDate = (dateString: string) => {
             </CardContent>
 
             <!-- Actions -->
-            <div class="p-4 pt-0 flex gap-3">
-              <Button class="flex-1 gap-2" variant="outline" @click="router.push(`/chat/${match.matchId}`)">
+            <div class="p-4 pt-0 flex flex-col gap-3">
+              <Button 
+                class="w-full gap-2"
+                :class="[
+                  getProposalStatus(match.matchId)?.status === 'accepted' 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : getProposalStatus(match.matchId)?.status === 'pending'
+                      ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                ]"
+                @click="openProposalModal(match)"
+              >
+                <Calendar class="h-4 w-4" />
+                <span v-if="getProposalStatus(match.matchId)?.status === 'accepted'">
+                  {{ t('dashboard.card.scheduled') }}
+                </span>
+                <span v-else-if="getProposalStatus(match.matchId)?.status === 'pending'">
+                  {{ t('dashboard.card.pending') }}
+                </span>
+                <span v-else>
+                  {{ t('dashboard.card.play') }}
+                </span>
+              </Button>
+
+              <Button class="w-full gap-2" variant="outline" @click="router.push(`/chat/${match.matchId}`)">
                 <MessageCircle class="h-4 w-4" />
                 {{ t('dashboard.card.message') }}
-              </Button>
-              <Button class="flex-1 gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-                <Calendar class="h-4 w-4" />
-                {{ t('dashboard.card.play') }}
               </Button>
             </div>
           </Card>
@@ -160,5 +276,25 @@ const formatMatchDate = (dateString: string) => {
         </Button>
       </div>
     </div>
+
+    <!-- Proposal Modal -->
+    <MatchProposalModal
+      v-model:open="showProposalModal"
+      :loading="proposalLoading"
+      @submit="handleCreateProposal"
+    />
+
+    <!-- Match Details Modal -->
+    <MatchDetailsModal
+      v-model:open="showDetailsModal"
+      :proposal="selectedMatch ? getProposalStatus(selectedMatch.matchId) : null"
+      :match-name="selectedMatch?.name"
+      :loading="proposalLoading"
+      :is-sender="selectedMatch && getProposalStatus(selectedMatch.matchId)?.sender_id === authStore.user?.id"
+      @cancel="handleCancelMatch"
+      @accept="handleProposalAction($event, 'accepted')"
+      @decline="handleProposalAction($event, 'declined')"
+      @message="handleMessageRedirect"
+    />
   </div>
 </template>

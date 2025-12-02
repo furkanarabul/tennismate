@@ -94,7 +94,9 @@
             "location_not_set": "Location not set",
             "matched": "Matched",
             "message": "Message",
-            "play": "Play"
+            "play": "Propose Match",
+            "scheduled": "Scheduled",
+            "pending": "Pending"
         },
         "dates": {
             "today": "Today",
@@ -210,9 +212,9 @@
         },
         "match_modal": {
             "title": "It's a Match!",
-            "subtitle": "You both liked each other!",
+            "subtitle": "You and {name} liked each other",
             "keep_playing": "Keep Playing",
-            "view_match": "View Match"
+            "view_match": "Send Message"
         },
         "card": {
             "location_not_set": "Location not set",
@@ -226,20 +228,52 @@
         "actions": {
             "pass": "Pass",
             "match": "Match"
+        },
+        "profile_completion": {
+            "title": "Complete Your Profile",
+            "subtitle": "Stand out to potential tennis partners by completing your profile",
+            "complete": "Complete",
+            "items_remaining": "items remaining",
+            "button": "Complete Profile",
+            "items": {
+                "photo": "Profile Photo",
+                "location": "Location",
+                "skill_level": "Skill Level",
+                "bio": "Bio",
+                "availability": "Availability"
+            }
         }
     },
-    "profile_completion": {
-        "title": "Complete Your Profile",
-        "subtitle": "Stand out to potential tennis partners by completing your profile",
-        "complete": "Complete",
-        "items_remaining": "items remaining",
-        "button": "Complete Profile",
-        "items": {
-            "photo": "Profile Photo",
-            "location": "Location",
-            "skill_level": "Skill Level",
-            "bio": "Bio",
-            "availability": "Availability"
+    "proposal": {
+        "create_title": "Propose a Match",
+        "date": "Date",
+        "time": "Time",
+        "court": "Court",
+        "court_placeholder": "e.g. Central Park Courts",
+        "send": "Send Proposal",
+        "accept": "Accept",
+        "decline": "Decline",
+        "cancel": "Cancel",
+        "cancel_match": "Cancel Match",
+        "status": {
+            "pending": "Pending Proposal",
+            "accepted": "Match Scheduled!",
+            "declined": "Proposal Declined",
+            "cancelled": "Proposal Cancelled"
+        },
+        "banner": {
+            "waiting": "Waiting for response...",
+            "received": "New Match Proposal"
         }
+    },
+    "match_details": {
+        "title": "Match Details",
+        "scheduled_with": "Match with {name}",
+        "subtitle": "You are all set! Here are the details.",
+        "pending_title": "Proposal Sent",
+        "pending_subtitle": "Waiting for {name} to accept your proposal.",
+        "received_title": "Match Proposal",
+        "received_subtitle": "{name} wants to play a match with you!",
+        "calendar_description": "Tennis match with {name} via TennisMate"
     }
 }
