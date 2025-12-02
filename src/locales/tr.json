@@ -94,7 +94,9 @@
             "location_not_set": "Konum ayarlanmadı",
             "matched": "Eşleşildi",
             "message": "Mesaj",
-            "play": "Oyna"
+            "play": "Maç Teklif Et",
+            "scheduled": "Planlandı",
+            "pending": "Bekliyor"
         },
         "dates": {
             "today": "Bugün",
@@ -241,5 +243,37 @@
             "bio": "Biyografi",
             "availability": "Uygunluk"
         }
+    },
+    "proposal": {
+        "create_title": "Maç Teklif Et",
+        "date": "Tarih",
+        "time": "Saat",
+        "court": "Kort",
+        "court_placeholder": "örn. Merkez Kortlar",
+        "send": "Teklifi Gönder",
+        "accept": "Kabul Et",
+        "decline": "Reddet",
+        "cancel": "İptal",
+        "cancel_match": "Maçı İptal Et",
+        "status": {
+            "pending": "Teklif Bekliyor",
+            "accepted": "Maç Planlandı!",
+            "declined": "Teklif Reddedildi",
+            "cancelled": "Teklif İptal Edildi"
+        },
+        "banner": {
+            "waiting": "Yanıt bekleniyor...",
+            "received": "Yeni Maç Teklifi"
+        }
+    },
+    "match_details": {
+        "title": "Maç Detayları",
+        "scheduled_with": "{name} ile Maç",
+        "subtitle": "Her şey hazır! İşte detaylar.",
+        "pending_title": "Teklif Gönderildi",
+        "pending_subtitle": "{name} kullanıcısının teklifini kabul etmesi bekleniyor.",
+        "received_title": "Maç Teklifi",
+        "received_subtitle": "{name} seninle maç yapmak istiyor!",
+        "calendar_description": "TennisMate üzerinden {name} ile tenis maçı"
     }
 }
