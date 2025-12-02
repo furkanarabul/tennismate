@@ -76,11 +76,7 @@ onMounted(async () => {
 
   // Get matched user info
   const matches = await getMatches(authStore.user.id)
-  matchedUser.value = matches.find(m => {
-    // Find match by checking if match_id exists in data
-    // We'll need to modify this based on actual data structure
-    return true // For now
-  })
+  matchedUser.value = matches.find(m => m.matchId === matchId)
 
   // Load message history
   messages.value = await getMessages(matchId)

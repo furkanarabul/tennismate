@@ -156,7 +156,8 @@
         "success": "Başarılı",
         "not_set": "Ayarlanmadı",
         "flexible": "Esnek",
-        "days_available": "{n} gün uygun"
+        "days_available": "{n} gün uygun",
+        "cancel": "İptal"
     },
     "filters": {
         "distance": {

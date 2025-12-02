@@ -61,6 +61,21 @@ export const useNotificationStore = defineStore('notifications', () => {
                 newCounts[msg.match_id] = (newCounts[msg.match_id] || 0) + 1
             })
 
+            // Also fetch pending proposals where we are the receiver
+            const { data: pendingProposals, error: propError } = await supabase
+                .from('match_proposals')
+                .select('match_id')
+                .in('match_id', matchIds)
+                .eq('status', 'pending')
+                .eq('receiver_id', authStore.user.id)
+
+            if (propError) throw propError
+
+            // Add proposals to counts
+            pendingProposals?.forEach(prop => {
+                newCounts[prop.match_id] = (newCounts[prop.match_id] || 0) + 1
+            })
+
             matchUnreadCounts.value = newCounts
 
         } catch (error) {
@@ -109,6 +124,44 @@ export const useNotificationStore = defineStore('notifications', () => {
                             matchUnreadCounts.value[newMessage.match_id] = currentCount + 1
                         } else {
                             // New match? or we just haven't loaded it. Refresh all.
+                            await fetchUnreadCounts()
+                        }
+                    }
+                }
+            )
+            .subscribe()
+            .subscribe()
+
+        // Subscribe to match proposals
+        supabase
+            .channel('global-proposals')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'match_proposals'
+                },
+                async (payload) => {
+                    const newProposal = payload.new as any
+                    const oldProposal = payload.old as any
+
+                    // Case 1: New proposal received
+                    if (payload.eventType === 'INSERT' && newProposal.receiver_id === authStore.user?.id && newProposal.status === 'pending') {
+                        const currentCount = matchUnreadCounts.value[newProposal.match_id]
+                        if (currentCount !== undefined) {
+                            matchUnreadCounts.value[newProposal.match_id] = currentCount + 1
+                        } else {
+                            await fetchUnreadCounts()
+                        }
+                    }
+
+                    // Case 2: Proposal status changed (e.g. accepted/declined/cancelled)
+                    if (payload.eventType === 'UPDATE') {
+                        // If we are the receiver, any status change might affect our notification count.
+                        // For example: pending -> accepted (count decreases)
+                        // We don't rely on 'old' record because REPLICA IDENTITY might not be FULL.
+                        if (newProposal.receiver_id === authStore.user?.id) {
                             await fetchUnreadCounts()
                         }
                     }
