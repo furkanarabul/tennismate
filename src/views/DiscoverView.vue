@@ -70,6 +70,28 @@ const calculatePlayerCounts = (allPlayers: UserProfile[]) => {
   }
 }
 
+const allFetchedUsers = ref<UserProfile[]>([])
+
+const applyFilters = () => {
+  if (!allFetchedUsers.value.length) {
+    players.value = []
+    return
+  }
+
+  // Filter by max distance
+  let filtered = allFetchedUsers.value
+  if (maxDistance.value !== null) {
+    filtered = filtered.filter(p => p.distance != null && p.distance <= maxDistance.value!)
+  }
+  
+  players.value = filtered
+  
+  // Reset index if we have new players
+  if (players.value.length > 0) {
+    currentIndex.value = 0
+  }
+}
+
 const loadUsers = async () => {
   if (!authStore.user) return
 
@@ -90,14 +112,16 @@ const loadUsers = async () => {
       }
     }
 
-    // Fetch users with location filtering
+    // Fetch users WITHOUT distance limit to get everyone for stats
     const fetchedPlayers = await getDiscoverUsers(
       authStore.user.id,
       userLatitude.value,
       userLongitude.value,
-      maxDistance.value
+      null // Fetch all within limit, filter locally
     )
     
+    allFetchedUsers.value = fetchedPlayers
+
     // Store all distances for client-side filtering/counting
     allPlayerDistances.value = fetchedPlayers
       .map(p => p.distance)
@@ -106,12 +130,9 @@ const loadUsers = async () => {
     // Calculate initial counts
     calculatePlayerCounts(fetchedPlayers)
     
-    players.value = fetchedPlayers
+    // Apply initial filter
+    applyFilters()
     
-    // Reset index if we have new players
-    if (players.value.length > 0) {
-      currentIndex.value = 0
-    }
   } catch (error) {
     console.error('Error loading users:', error)
   }
@@ -280,10 +301,8 @@ const requestLocation = async () => {
 }
 
 // Watch for distance filter changes
-watch(maxDistance, async (newDistance) => {
-  if (newDistance) {
-    await loadUsers()
-  }
+watch(maxDistance, () => {
+  applyFilters()
 })
 
 onMounted(async () => {
