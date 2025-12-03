@@ -4,8 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
-import { Trophy, MapPin, User as UserIcon, LogOut, Calendar, Edit2, Save, X, Camera } from 'lucide-react-native';
+import { Trophy, MapPin, User as UserIcon, LogOut, Calendar, Edit2, Save, X, Camera, Settings, Sun, Moon, Monitor } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+
 
 interface ProfileData {
     name: string;
@@ -22,6 +23,7 @@ const SKILL_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Pro'];
 
 export default function Profile() {
     const { user, signOut } = useAuth();
+
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -371,6 +373,9 @@ export default function Profile() {
                             </Text>
                         )}
                     </View>
+
+                    {/* Settings */}
+
 
                     {/* Logout Button */}
                     {!isEditing && (

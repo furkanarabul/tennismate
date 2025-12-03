@@ -6,11 +6,13 @@ import { MatchProposal } from '../hooks/useMatchProposal';
 interface MatchCardProps {
     match: any;
     proposal?: MatchProposal;
+    messageUnreadCount?: number;
+    proposalUnreadCount?: number;
     onPressProposal: () => void;
     onPressMessage: () => void;
 }
 
-export const MatchCard = ({ match, proposal, onPressProposal, onPressMessage }: MatchCardProps) => {
+export const MatchCard = ({ match, proposal, messageUnreadCount = 0, proposalUnreadCount = 0, onPressProposal, onPressMessage }: MatchCardProps) => {
     const getSkillLevelColor = (level: string) => {
         switch (level?.toLowerCase()) {
             case 'beginner': return 'text-blue-500 bg-blue-500/10';
@@ -91,16 +93,26 @@ export const MatchCard = ({ match, proposal, onPressProposal, onPressMessage }: 
 
             {/* Actions */}
             <View className="p-4 pt-0 gap-3">
-                <TouchableOpacity onPress={onPressProposal}>
+                <TouchableOpacity onPress={onPressProposal} className="relative">
                     {getProposalButtonContent()}
+                    {proposalUnreadCount > 0 && (
+                        <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[20px] h-5 items-center justify-center px-1.5 border-2 border-card z-10">
+                            <Text className="text-white text-[10px] font-bold">{proposalUnreadCount > 99 ? '99+' : proposalUnreadCount}</Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     onPress={onPressMessage}
-                    className="flex-row items-center justify-center gap-2 bg-secondary py-3 rounded-xl border border-border"
+                    className="relative flex-row items-center justify-center gap-2 bg-secondary py-3 rounded-xl border border-border"
                 >
                     <MessageCircle size={18} color="#6b7280" />
                     <Text className="text-foreground font-medium">Message</Text>
+                    {messageUnreadCount > 0 && (
+                        <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[20px] h-5 items-center justify-center px-1.5 border-2 border-card z-10">
+                            <Text className="text-white text-[10px] font-bold">{messageUnreadCount > 99 ? '99+' : messageUnreadCount}</Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
             </View>
         </View>

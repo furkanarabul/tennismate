@@ -74,11 +74,14 @@ export const MatchNotificationModal = ({
         <Modal
             visible={visible}
             transparent
-            animationType="slide"
+            animationType="fade"
             onRequestClose={onClose}
         >
             <View className="flex-1 bg-black/90 items-center justify-center px-6">
-                <View className="items-center w-full">
+                <Animated.View
+                    entering={FadeIn.duration(300)}
+                    className="items-center w-full"
+                >
                     {/* Title */}
                     <Animated.View style={[animatedStyle]} className="mb-12 items-center">
                         <Text className="text-3xl font-bold text-white tracking-tight mb-2" style={{ fontFamily: 'Helvetica' }}>
@@ -137,8 +140,8 @@ export const MatchNotificationModal = ({
                             <Text className="text-white font-bold text-lg">Keep Swiping</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                </Animated.View>
             </View>
-        </Modal>
+        </Modal >
     );
 };
