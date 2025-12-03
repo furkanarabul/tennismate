@@ -5,19 +5,32 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useMatching } from '../../hooks/useMatching';
 import { useMatchProposal, MatchProposal } from '../../hooks/useMatchProposal';
+import { useNotifications } from '../../context/NotificationContext';
 import { MatchCard } from '../../components/MatchCard';
 import { Users, Heart } from 'lucide-react-native';
+
+import { MatchProposalModal } from '../../components/MatchProposalModal';
+import { MatchProposalDetailsModal } from '../../components/MatchProposalDetailsModal';
 
 export default function Dashboard() {
     const { user } = useAuth();
     const router = useRouter();
     const { getMatches } = useMatching();
     const { getActiveProposalsForMatches } = useMatchProposal();
+    const { getUnreadMessageCount, getUnreadProposalCount } = useNotifications();
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+    const [selectedMatch, setSelectedMatch] = useState<any>(null);
+    const [selectedProposal, setSelectedProposal] = useState<MatchProposal | null>(null);
+    const [proposalLoading, setProposalLoading] = useState(false);
 
     const [matches, setMatches] = useState<any[]>([]);
     const [activeProposals, setActiveProposals] = useState<Record<string, MatchProposal>>({});
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    const { createProposal, respondToProposal } = useMatchProposal();
 
     const loadData = async () => {
         if (!user) return;
@@ -60,14 +73,58 @@ export default function Dashboard() {
     };
 
     const handlePressProposal = (match: any) => {
-        // TODO: Open Proposal Modal or Details Modal
-        console.log('Open proposal for', match.name);
+        const proposal = activeProposals[match.matchId];
+        if (proposal) {
+            setSelectedProposal(proposal);
+            setDetailsModalVisible(true);
+        } else {
+            setSelectedMatch(match);
+            setModalVisible(true);
+        }
+    };
+
+    const handleCreateProposal = async (data: { date: Date; time: Date; court: string }) => {
+        if (!user || !selectedMatch) return;
+
+        setProposalLoading(true);
+        try {
+            // Combine date and time
+            const scheduledAt = new Date(data.date);
+            scheduledAt.setHours(data.time.getHours());
+            scheduledAt.setMinutes(data.time.getMinutes());
+
+            await createProposal(
+                selectedMatch.matchId,
+                user.id,
+                selectedMatch.id,
+                scheduledAt.toISOString(),
+                data.court
+            );
+
+            setModalVisible(false);
+            loadData(); // Refresh to show new status
+        } catch (error) {
+            console.error('Error creating proposal:', error);
+        } finally {
+            setProposalLoading(false);
+        }
+    };
+
+    const handleProposalAction = async (id: string, action: 'accepted' | 'declined' | 'cancelled') => {
+        setProposalLoading(true);
+        try {
+            await respondToProposal(id, action);
+            setDetailsModalVisible(false);
+            loadData();
+        } catch (error) {
+            console.error('Error updating proposal:', error);
+        } finally {
+            setProposalLoading(false);
+        }
     };
 
     const handlePressMessage = (match: any) => {
-        // TODO: Navigate to Chat
-        console.log('Navigate to chat with', match.name);
-        // router.push(`/chat/${match.matchId}`);
+        router.push(`/chat/${match.matchId}`);
     };
 
     if (loading && !refreshing) {
@@ -93,6 +150,8 @@ export default function Dashboard() {
                         <MatchCard
                             match={item}
                             proposal={activeProposals[item.matchId]}
+                            messageUnreadCount={getUnreadMessageCount(item.matchId)}
+                            proposalUnreadCount={getUnreadProposalCount(item.matchId)}
                             onPressProposal={() => handlePressProposal(item)}
                             onPressMessage={() => handlePressMessage(item)}
                         />
@@ -121,6 +180,24 @@ export default function Dashboard() {
                     </TouchableOpacity>
                 </View>
             )}
+
+            <MatchProposalModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onSubmit={handleCreateProposal}
+                loading={proposalLoading}
+            />
+
+            <MatchProposalDetailsModal
+                visible={detailsModalVisible}
+                proposal={selectedProposal}
+                isSender={selectedProposal?.sender_id === user?.id}
+                onClose={() => setDetailsModalVisible(false)}
+                onAccept={(id) => handleProposalAction(id, 'accepted')}
+                onDecline={(id) => handleProposalAction(id, 'declined')}
+                onCancel={(id) => handleProposalAction(id, 'cancelled')}
+                loading={proposalLoading}
+            />
         </SafeAreaView>
     );
 }
