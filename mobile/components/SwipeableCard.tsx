@@ -9,7 +9,7 @@ import Animated, {
     interpolate,
 } from 'react-native-reanimated';
 import { UserProfile } from '../hooks/useMatching';
-import { MapPin, Trophy } from 'lucide-react-native';
+import { MapPin, Trophy, Heart } from 'lucide-react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
@@ -94,6 +94,14 @@ export const SwipeableCard = ({ user, onSwipeLeft, onSwipeRight }: SwipeableCard
                                 {user.age ? <Text className="text-2xl font-normal">, {user.age}</Text> : null}
                             </Text>
                         </View>
+
+                        {/* Liked You Badge */}
+                        {user.hasLikedMe && (
+                            <View className="absolute top-4 right-4 bg-red-500 px-3 py-1.5 rounded-full flex-row items-center gap-1 shadow-lg">
+                                <Heart size={14} color="white" fill="white" />
+                                <Text className="text-white font-bold text-xs uppercase tracking-wide">Liked You</Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* Info Section */}
