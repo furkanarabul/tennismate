@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from './auth'
 
 export const useNotificationStore = defineStore('notifications', () => {
-    const authStore = useAuthStore()
+    // We'll get auth store inside actions to avoid circular dependency
+
 
     // State
     const matchUnreadCounts = ref<Record<string, number>>({}) // Only messages
@@ -26,6 +27,7 @@ export const useNotificationStore = defineStore('notifications', () => {
 
     // Actions
     const fetchUnreadCounts = async () => {
+        const authStore = useAuthStore()
         if (!authStore.user) return
 
         loading.value = true
@@ -91,6 +93,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     const subscribeToNotifications = () => {
+        const authStore = useAuthStore()
         if (!authStore.user) return
 
         // Subscribe to new messages
