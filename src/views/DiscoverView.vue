@@ -2,7 +2,16 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Heart, X, MapPin, Trophy, Star, MessageCircle, User, Navigation, ChevronDown } from 'lucide-vue-next'
+import { Heart, X, MapPin, Trophy, Star, MessageCircle, User, Navigation, ChevronDown, SlidersHorizontal, RotateCcw } from 'lucide-vue-next'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { ref, onMounted, nextTick, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -34,6 +43,7 @@ const maxDistance = ref<number | null>(25) // Default: 25km
 const userLatitude = ref<number | null>(null)
 const userLongitude = ref<number | null>(null)
 const showLocationPrompt = ref(false)
+const showFilters = ref(false)
 const genderFilter = ref('any')
 
 const genderOptions = computed(() => [
@@ -251,24 +261,28 @@ const handleSwipeComplete = async (direction: 'left' | 'right') => {
     return
   }
 
-  if (direction === 'right') {
-    const { isMatch, matchId } = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
-    if (isMatch) {
-      matchedUser.value = currentPlayer
-      currentMatchId.value = matchId || null
-      showMatchModal.value = true
+  try {
+    if (direction === 'right') {
+      const { isMatch, matchId } = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
+      if (isMatch) {
+        matchedUser.value = currentPlayer
+        currentMatchId.value = matchId || null
+        showMatchModal.value = true
+      }
+    } else {
+      await swipeUser(authStore.user.id, currentPlayer.id, 'pass')
     }
-  } else {
-    await swipeUser(authStore.user.id, currentPlayer.id, 'pass')
+  } catch (error) {
+    console.error('Swipe error:', error)
+  } finally {
+    // Remove swiped user from array
+    players.value.splice(currentIndex.value, 1)
+    
+    await nextTick()
+    
+    resetCard()
+    isAnimating.value = false
   }
-
-  // Remove swiped user from array
-  players.value.splice(currentIndex.value, 1)
-  
-  await nextTick()
-  
-  resetCard()
-  isAnimating.value = false
 }
 
 const handleMessage = () => {
@@ -422,22 +436,67 @@ watch(players, () => {
       </div>
 
       <!-- Location & Distance Filter -->
-      <div class="mb-6 space-y-4">
-        <!-- Gender Filter -->
-        <div class="max-w-xs mx-auto">
-            <Select v-model="genderFilter" :options="genderOptions" />
-        </div>
+      <div class="mb-6 flex items-center justify-between gap-4">
+         <Button variant="outline" class="gap-2" @click="showFilters = true">
+            <SlidersHorizontal class="h-4 w-4" />
+            {{ t('discover.filters') }}
+         </Button>
 
-        <!-- Distance Filter (only when location enabled) -->
-        <DistanceFilter 
-          v-if="userLatitude"
-          v-model="maxDistance"
-          :player-counts="playerCounts"
-          :all-distances="allPlayerDistances"
-          :total-count="genderFilteredUsers.length"
-          @update:modelValue="loadUsers"
-        />
+         <Button variant="ghost" size="icon" @click="loadUsers" :disabled="loading">
+            <RotateCcw class="h-4 w-4" :class="{ 'animate-spin': loading }" />
+         </Button>
       </div>
+
+      <!-- Filter Modal -->
+      <Dialog v-model:open="showFilters">
+        <DialogContent class="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{{ t('discover.filters') }}</DialogTitle>
+            <DialogDescription>
+              {{ t('discover.filters_description') }}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div class="grid gap-6 py-4">
+            <!-- Gender Filter -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {{ t('filters.gender.label') }}
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="option in genderOptions"
+                  :key="option.value"
+                  @click="genderFilter = option.value"
+                  class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                  :class="genderFilter === option.value 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Distance Filter -->
+            <div class="space-y-2" v-if="userLatitude">
+               <DistanceFilter 
+                v-model="maxDistance"
+                :player-counts="playerCounts"
+                :all-distances="allPlayerDistances"
+                :total-count="genderFilteredUsers.length"
+                @update:modelValue="loadUsers"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button @click="showFilters = false" class="w-full">
+              {{ t('common.show_results', { count: players.length }) }}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <!-- Location Required Prompt (BLOCKING) -->
       <div v-if="!userLatitude || showLocationPrompt" class="max-w-md mx-auto">
@@ -501,9 +560,6 @@ watch(players, () => {
             <Button @click="maxDistance = nextBestRange" class="mb-2">
               {{ t('discover.smart_empty_state.expand', { dist: nextBestRange }) }}
             </Button>
-            <Button @click="loadUsers" variant="outline">
-              {{ t('discover.smart_empty_state.refresh') }}
-            </Button>
           </div>
           
           <!-- Regular Empty State -->
@@ -511,9 +567,6 @@ watch(players, () => {
 
             <h3 class="text-xl font-semibold mb-2">{{ t('discover.empty_state.title') }}</h3>
             <p class="text-muted-foreground mb-6">{{ t('discover.empty_state.description') }}</p>
-            <Button variant="outline" @click="loadUsers">
-              {{ t('discover.smart_empty_state.refresh') }}
-            </Button>
           </div>
         </div>
 
@@ -644,7 +697,7 @@ watch(players, () => {
         </div>
 
         <!-- Action buttons with enhanced styling -->
-        <div class="flex gap-6 justify-center items-center">
+        <div class="flex gap-6 justify-center items-center relative z-20">
           <!-- Pass Button -->
           <Button
             variant="outline"
