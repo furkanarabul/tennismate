@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { Trophy, Home, Compass, Users, User, Heart, ListTodo, Loader2 } from 'lucide-vue-next'
 import InstallPrompt from '@/components/InstallPrompt.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/auth'
 const loading = ref(true)
 const notificationStore = useNotificationStore()
 const authStore = useAuthStore()
+const router = useRouter()
 
 onMounted(async () => {
   // Check if we already have a stored language preference
@@ -34,9 +35,23 @@ onMounted(async () => {
 })
 
 // Watch for auth changes to init/reset notifications
-watch(() => authStore.user, (user) => {
+// Watch for auth changes to init/reset notifications and handle onboarding redirect
+watch(() => authStore.user, async (user) => {
   if (user) {
     notificationStore.initialize()
+    
+    // Check profile completion on auth state change (e.g. email confirmation)
+    if (!authStore.isProfileComplete) {
+      // Wait for profile to be fetched if it hasn't been already
+      if (!authStore.profile) {
+        await authStore.fetchProfile()
+      }
+      
+      // If still incomplete, redirect to profile
+      if (!authStore.isProfileComplete && router.currentRoute.value.path !== '/profile') {
+        router.push('/profile')
+      }
+    }
   }
 })
 </script>

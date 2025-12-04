@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Heart, X, MapPin, Trophy, Star, MessageCircle, User, Navigation, ChevronDown } from 'lucide-vue-next'
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useMatching, type UserProfile } from '@/composables/useMatching'
@@ -33,9 +34,15 @@ const maxDistance = ref<number | null>(25) // Default: 25km
 const userLatitude = ref<number | null>(null)
 const userLongitude = ref<number | null>(null)
 const showLocationPrompt = ref(false)
+const genderFilter = ref('any')
+
+const genderOptions = computed(() => [
+  { value: 'any', label: t('filters.gender.any') },
+  { value: 'male', label: t('filters.gender.male') },
+  { value: 'female', label: t('filters.gender.female') }
+])
 
 // Player counts
-const allPlayerDistances = ref<number[]>([])
 const playerCounts = ref<Record<number | string, number>>({})
 const nextBestRange = ref<number | null>(null)
 
@@ -72,6 +79,17 @@ const calculatePlayerCounts = (allPlayers: UserProfile[]) => {
 
 const allFetchedUsers = ref<UserProfile[]>([])
 
+const genderFilteredUsers = computed(() => {
+  if (genderFilter.value === 'any') return allFetchedUsers.value
+  return allFetchedUsers.value.filter(p => p.gender === genderFilter.value)
+})
+
+const allPlayerDistances = computed(() => {
+  return genderFilteredUsers.value
+    .map(p => p.distance)
+    .filter((d): d is number => d != null)
+})
+
 const applyFilters = () => {
   if (!allFetchedUsers.value.length) {
     players.value = []
@@ -79,10 +97,21 @@ const applyFilters = () => {
   }
 
   // Filter by max distance
-  let filtered = allFetchedUsers.value
+  // Filter by max distance
+  let filtered = genderFilteredUsers.value
   if (maxDistance.value !== null) {
     filtered = filtered.filter(p => p.distance != null && p.distance <= maxDistance.value!)
   }
+  
+  // Filter by gender
+  if (genderFilter.value !== 'any') {
+    filtered = filtered.filter(p => p.gender === genderFilter.value)
+  }
+  
+  // Filter by gender (already done in genderFilteredUsers, but keeping structure if needed)
+  // if (genderFilter.value !== 'any') {
+  //   filtered = filtered.filter(p => p.gender === genderFilter.value)
+  // }
   
   players.value = filtered
   
@@ -122,16 +151,9 @@ const loadUsers = async () => {
     
     allFetchedUsers.value = fetchedPlayers
 
-    // Store all distances for client-side filtering/counting
-    allPlayerDistances.value = fetchedPlayers
-      .map(p => p.distance)
-      .filter((d): d is number => d != null)
-    
-    // Calculate initial counts
-    calculatePlayerCounts(fetchedPlayers)
-    
-    // Apply initial filter
-    applyFilters()
+    // Calculate initial counts (will be triggered by watcher too, but safe to do here)
+    // calculatePlayerCounts(fetchedPlayers) 
+    // applyFilters()
     
   } catch (error) {
     console.error('Error loading users:', error)
@@ -316,6 +338,12 @@ watch(maxDistance, () => {
   applyFilters()
 })
 
+// Watch for gender filtered users to update counts and re-apply filters
+watch(genderFilteredUsers, (newUsers) => {
+  calculatePlayerCounts(newUsers)
+  applyFilters()
+})
+
 onMounted(async () => {
   if (!authStore.user) {
     router.push('/login')
@@ -395,13 +423,18 @@ watch(players, () => {
 
       <!-- Location & Distance Filter -->
       <div class="mb-6 space-y-4">
+        <!-- Gender Filter -->
+        <div class="max-w-xs mx-auto">
+            <Select v-model="genderFilter" :options="genderOptions" />
+        </div>
+
         <!-- Distance Filter (only when location enabled) -->
         <DistanceFilter 
           v-if="userLatitude"
           v-model="maxDistance"
           :player-counts="playerCounts"
           :all-distances="allPlayerDistances"
-          :total-count="allFetchedUsers.length"
+          :total-count="genderFilteredUsers.length"
           @update:modelValue="loadUsers"
         />
       </div>

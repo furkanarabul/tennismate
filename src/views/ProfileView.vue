@@ -25,22 +25,24 @@ const isEditing = ref(false)
 const profile = ref({
   name: '',
   email: '',
-  skillLevel: 'Intermediate',
+  skillLevel: '',
   location: '',
   bio: '',
   availability: [] as any[],
   avatar_url: '',
-  age: null as number | null
+  age: null as number | null,
+  gender: ''
 })
 
 // Form data for editing
 const formData = ref({
-  skillLevel: 'Intermediate',
+  skillLevel: '',
   location: '',
   bio: '',
   availability: [] as any[],
   avatar_url: '',
-  age: null as number | null
+  age: null as number | null,
+  gender: ''
 })
 
 const skillLevelOptions = computed(() => [
@@ -50,10 +52,22 @@ const skillLevelOptions = computed(() => [
   { value: 'Pro', label: t('profile.skill_levels.pro') }
 ])
 
+const genderOptions = computed(() => [
+  { value: 'male', label: t('profile.gender.male') },
+  { value: 'female', label: t('profile.gender.female') },
+  { value: 'other', label: t('profile.gender.other') }
+])
+
 const getSkillLevelLabel = (level: string) => {
   if (!level) return ''
   const key = level.toLowerCase()
   return t(`profile.skill_levels.${key}`) || level
+}
+
+const getGenderLabel = (value: string) => {
+  if (!value) return ''
+  const option = genderOptions.value.find(o => o.value === value)
+  return option ? option.label : value
 }
 
 // Mask email
@@ -84,7 +98,8 @@ const startEditing = () => {
     bio: profile.value.bio,
     availability: JSON.parse(JSON.stringify(profile.value.availability)),
     avatar_url: profile.value.avatar_url,
-    age: profile.value.age
+    age: profile.value.age,
+    gender: profile.value.gender
   }
   isEditing.value = true
 }
@@ -95,6 +110,12 @@ const cancelEditing = () => {
 
 const saveProfile = async () => {
   if (!authStore.user) return
+
+  // Validation
+  if (!formData.value.skillLevel || !formData.value.location || !formData.value.gender) {
+    alert(t('profile.errors.fill_required'))
+    return
+  }
 
   saving.value = true
 
@@ -107,7 +128,8 @@ const saveProfile = async () => {
         bio: formData.value.bio || null,
         availability: JSON.stringify(formData.value.availability),
         avatar_url: formData.value.avatar_url || null,
-        age: formData.value.age || null
+        age: formData.value.age || null,
+        gender: formData.value.gender || null
       })
       .eq('id', authStore.user.id)
 
@@ -120,6 +142,10 @@ const saveProfile = async () => {
     profile.value.availability = formData.value.availability
     profile.value.avatar_url = formData.value.avatar_url
     profile.value.age = formData.value.age
+    profile.value.gender = formData.value.gender
+    
+    // Refresh profile in auth store to update completion status
+    await authStore.fetchProfile()
 
     isEditing.value = false
   } catch (error) {
@@ -153,12 +179,13 @@ onMounted(async () => {
       profile.value = {
         name: data.name || 'No name',
         email: data.email || authStore.user.email || '',
-        skillLevel: data.skill_level || 'Intermediate',
+        skillLevel: data.skill_level || '',
         location: data.location || '',
         bio: data.bio || '',
         availability: data.availability ? JSON.parse(data.availability) : [],
         avatar_url: data.avatar_url || '',
-        age: data.age || null
+        age: data.age || null,
+        gender: data.gender || ''
       }
     } else {
       // Profile doesn't exist, create it
@@ -169,7 +196,7 @@ onMounted(async () => {
             id: authStore.user.id,
             email: authStore.user.email,
             name: authStore.user.user_metadata?.name || 'User',
-            skill_level: 'Intermediate',
+            skill_level: null,
             avatar_url: authStore.user.user_metadata?.avatar_url || ''
           }
         ])
@@ -180,12 +207,13 @@ onMounted(async () => {
       profile.value = {
         name: authStore.user.user_metadata?.name || 'User',
         email: authStore.user.email || '',
-        skillLevel: 'Intermediate',
+        skillLevel: '',
         location: '',
         bio: '',
         availability: [],
         avatar_url: authStore.user.user_metadata?.avatar_url || '',
-        age: null
+        age: null,
+        gender: ''
       }
     }
   } catch (error) {
@@ -278,7 +306,10 @@ onMounted(async () => {
             <CardContent class="space-y-4">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-2">
-                  <Label>{{ t('profile.labels.skill_level') }}</Label>
+                  <Label>
+                    {{ t('profile.labels.skill_level') }}
+                    <span v-if="isEditing" class="text-destructive">*</span>
+                  </Label>
                   <Select v-if="isEditing" v-model="formData.skillLevel" :options="skillLevelOptions" />
                   <div v-else class="flex items-center gap-2">
                     <Trophy class="h-4 w-4 text-primary" />
@@ -300,8 +331,23 @@ onMounted(async () => {
                   </div>
                 </div>
 
+                <div class="space-y-2">
+                  <Label>
+                    {{ t('profile.labels.gender') }}
+                    <span v-if="isEditing" class="text-destructive">*</span>
+                  </Label>
+                  <Select v-if="isEditing" v-model="formData.gender" :options="genderOptions" />
+                  <div v-else class="flex items-center gap-2">
+                    <UserIcon class="h-4 w-4 text-muted-foreground" />
+                    <span>{{ getGenderLabel(profile.gender) || '-' }}</span>
+                  </div>
+                </div>
+
                 <div class="space-y-2 md:col-span-2">
-                  <Label>{{ t('profile.labels.location') }}</Label>
+                  <Label>
+                    {{ t('profile.labels.location') }}
+                    <span v-if="isEditing" class="text-destructive">*</span>
+                  </Label>
                   <div v-if="isEditing" class="relative">
                     <MapPin class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input 

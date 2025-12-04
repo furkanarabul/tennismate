@@ -129,7 +129,13 @@
             "location": "Location",
             "skill_level": "Skill Level",
             "bio": "Bio",
-            "email": "Email"
+            "email": "Email",
+            "gender": "Gender"
+        },
+        "gender": {
+            "male": "Male",
+            "female": "Female",
+            "other": "Other / Prefer not to say"
         },
         "placeholders": {
             "name": "Your name",
@@ -148,6 +154,9 @@
             "intermediate": "Intermediate",
             "advanced": "Advanced",
             "pro": "Pro"
+        },
+        "errors": {
+            "fill_required": "Please fill in all mandatory fields marked with *"
         }
     },
     "consent": {
@@ -173,6 +182,12 @@
             "no_players_found": "No players found",
             "close": "Close",
             "far": "Far"
+        },
+        "gender": {
+            "label": "Gender",
+            "any": "Any Gender",
+            "male": "Male",
+            "female": "Female"
         }
     },
     "chat": {

@@ -16,6 +16,7 @@ export interface UserProfile {
     distance?: number // Calculated distance in km
     hasLikedMe?: boolean // If the user has already liked the current user
     age?: number | null
+    gender?: string
 }
 
 export const useMatching = () => {
