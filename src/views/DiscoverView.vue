@@ -220,6 +220,8 @@ const animateSwipe = (direction: 'left' | 'right') => {
   })
 }
 
+const currentMatchId = ref<string | null>(null)
+
 const handleSwipeComplete = async (direction: 'left' | 'right') => {
   const currentPlayer = players.value[currentIndex.value]
   if (!currentPlayer || !authStore.user) {
@@ -228,9 +230,10 @@ const handleSwipeComplete = async (direction: 'left' | 'right') => {
   }
 
   if (direction === 'right') {
-    const isMatch = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
+    const { isMatch, matchId } = await swipeUser(authStore.user.id, currentPlayer.id, 'like')
     if (isMatch) {
       matchedUser.value = currentPlayer
+      currentMatchId.value = matchId || null
       showMatchModal.value = true
     }
   } else {
@@ -244,6 +247,14 @@ const handleSwipeComplete = async (direction: 'left' | 'right') => {
   
   resetCard()
   isAnimating.value = false
+}
+
+const handleMessage = () => {
+  if (currentMatchId.value) {
+    router.push(`/chat/${currentMatchId.value}`)
+  } else {
+    router.push('/dashboard')
+  }
 }
 
 const handleLike = () => {
@@ -390,6 +401,7 @@ watch(players, () => {
           v-model="maxDistance"
           :player-counts="playerCounts"
           :all-distances="allPlayerDistances"
+          :total-count="allFetchedUsers.length"
           @update:modelValue="loadUsers"
         />
       </div>
@@ -642,63 +654,69 @@ watch(players, () => {
         class="relative max-w-md w-full mx-4"
         @click.stop
       >
-        <Card class="overflow-hidden border-2 border-primary/30 bg-gradient-to-br from-card via-card to-primary/5">
-          <CardHeader class="text-center pb-6 pt-8">
-            <CardTitle class="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
-              {{ t('discover.match_modal.title') }}
-            </CardTitle>
-            <CardDescription class="text-base">{{ t('discover.match_modal.subtitle') }}</CardDescription>
-          </CardHeader>
-          
-          <CardContent class="pt-0 pb-8">
-            <!-- Matched User Info -->
-            <div class="flex flex-col items-center text-center mb-8">
-              <div class="relative mb-4">
-                <div class="h-28 w-28 rounded-full overflow-hidden border-4 border-primary/30">
-                  <img
-                    v-if="matchedUser.avatar_url"
-                    :src="matchedUser.avatar_url"
-                    :alt="matchedUser.name"
-                    class="w-full h-full object-cover"
-                  />
-                  <div v-else class="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <User class="h-14 w-14 text-primary" />
-                  </div>
-                </div>
-                <!-- Green check -->
-                <div class="absolute -bottom-1 -right-1 h-10 w-10 bg-green-500 border-4 border-card rounded-full flex items-center justify-center">
-                  <Heart class="h-5 w-5 text-white fill-white" />
+        <Card class="overflow-hidden border-none bg-white shadow-2xl rounded-3xl">
+          <CardContent class="pt-10 pb-8 px-6 flex flex-col items-center">
+            
+            <!-- Title -->
+            <h2 class="text-3xl font-bold text-green-600 mb-2 text-center">It's a Match!</h2>
+            <p class="text-gray-500 text-center mb-8">
+              You and <span class="font-semibold text-gray-900">{{ matchedUser.name }}</span> liked each other!
+            </p>
+
+            <!-- Overlapping Avatars -->
+            <div class="relative h-32 w-full flex justify-center items-center mb-8">
+              <!-- Current User (Left) -->
+              <div class="absolute left-[20%] z-10 h-28 w-28 rounded-full border-4 border-white shadow-lg overflow-hidden">
+                <img
+                  v-if="userProfile?.avatar_url"
+                  :src="userProfile.avatar_url"
+                  alt="You"
+                  class="w-full h-full object-cover"
+                />
+                <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <User class="h-12 w-12 text-gray-400" />
                 </div>
               </div>
-              
-              <h3 class="text-2xl font-bold mb-1">{{ matchedUser.name }}</h3>
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/20 mb-2">
-                <Trophy class="h-3.5 w-3.5 text-primary" />
-                <span class="text-xs font-medium text-primary">{{ getSkillLevelLabel(matchedUser.skill_level) }}</span>
+
+              <!-- Matched User (Right) -->
+              <div class="absolute right-[20%] z-20 h-28 w-28 rounded-full border-4 border-green-500 shadow-lg overflow-hidden">
+                <img
+                  v-if="matchedUser.avatar_url"
+                  :src="matchedUser.avatar_url"
+                  :alt="matchedUser.name"
+                  class="w-full h-full object-cover"
+                />
+                <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <User class="h-12 w-12 text-gray-400" />
+                </div>
               </div>
-              <p class="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                <MapPin class="h-3.5 w-3.5" />
-                {{ matchedUser.location || t('discover.card.location_not_set') }}
-              </p>
+
+              <!-- Heart Badge -->
+              <div class="absolute z-30 bg-white p-2 rounded-full shadow-md">
+                <Heart class="h-6 w-6 text-green-600 fill-green-600" />
+              </div>
             </div>
 
             <!-- Actions -->
-            <div class="flex gap-3">
+            <div class="w-full space-y-3">
               <Button 
-                variant="outline" 
-                class="flex-1 hover:bg-primary/10 hover:border-primary/50 transition-colors" 
-                @click="showMatchModal = false"
-              >
-                {{ t('discover.match_modal.keep_playing') }}
-              </Button>
-              <Button 
-                class="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-opacity" 
-                @click="router.push('/dashboard')"
+                class="w-full h-12 rounded-md bg-[#1ea955] hover:bg-[#188a44] text-white font-semibold text-base shadow-sm" 
+                @click="handleMessage"
               >
                 <MessageCircle class="h-4 w-4 mr-2" />
                 {{ t('discover.match_modal.view_match') }}
               </Button>
+              
+              <Button 
+                variant="outline" 
+                class="w-full h-12 rounded-md border-gray-200 text-gray-900 hover:bg-gray-50 font-semibold text-base" 
+                @click="showMatchModal = false"
+              >
+                <X class="h-4 w-4 mr-2" />
+                {{ t('discover.match_modal.keep_playing') }}
+              </Button>
             </div>
+
           </CardContent>
         </Card>
       </div>

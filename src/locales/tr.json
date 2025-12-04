@@ -96,7 +96,13 @@
             "message": "Mesaj",
             "play": "Maç Teklif Et",
             "scheduled": "Planlandı",
-            "pending": "Bekliyor"
+            "pending": "Bekliyor",
+            "unmatch": "Eşleşmeyi Kaldır"
+        },
+        "unmatch_modal": {
+            "title": "Eşleşmeyi Kaldır",
+            "description": "{name} ile eşleşmeyi kaldırmak istediğine emin misin? Bu işlem geri alınamaz.",
+            "confirm": "Evet, Kaldır"
         },
         "dates": {
             "today": "Bugün",
@@ -214,8 +220,8 @@
         "match_modal": {
             "title": "Eşleşme!",
             "subtitle": "İkiniz de birbirinizi beğendiniz!",
-            "keep_playing": "Oynamaya Devam Et",
-            "view_match": "Maçı Görüntüle"
+            "keep_playing": "Kaydırmaya Devam Et",
+            "view_match": "Mesaj"
         },
         "card": {
             "location_not_set": "Konum ayarlanmadı",
