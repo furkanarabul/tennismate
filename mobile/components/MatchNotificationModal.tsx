@@ -8,7 +8,8 @@ import Animated, {
     withSpring,
     withDelay,
     withSequence,
-    withRepeat
+    withRepeat,
+    FadeIn
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 
@@ -16,6 +17,7 @@ interface MatchNotificationModalProps {
     visible: boolean;
     currentUserAvatar?: string;
     matchedUser: UserProfile | null;
+    matchId?: string | null;
     onClose: () => void;
 }
 
@@ -25,6 +27,7 @@ export const MatchNotificationModal = ({
     visible,
     currentUserAvatar,
     matchedUser,
+    matchId,
     onClose
 }: MatchNotificationModalProps) => {
     const router = useRouter();
@@ -65,9 +68,11 @@ export const MatchNotificationModal = ({
 
     const handleSendMessage = () => {
         onClose();
-        // We need the match ID here. Ideally, the swipeUser function should return the match object or ID.
-        // For now, we'll redirect to dashboard where the match will appear.
-        router.push('/(tabs)/dashboard');
+        if (matchId) {
+            router.push(`/chat/${matchId}`);
+        } else {
+            router.push('/(tabs)/dashboard');
+        }
     };
 
     return (
@@ -83,13 +88,20 @@ export const MatchNotificationModal = ({
                     className="items-center w-full"
                 >
                     {/* Title */}
-                    <Animated.View style={[animatedStyle]} className="mb-12 items-center">
-                        <Text className="text-3xl font-bold text-white tracking-tight mb-2" style={{ fontFamily: 'Helvetica' }}>
-                            IT'S A
-                        </Text>
-                        <Text className="text-6xl font-bold text-primary tracking-tighter" style={{ fontFamily: 'Helvetica' }}>
-                            MATCH!
-                        </Text>
+                    <Animated.View style={[animatedStyle]} className="mb-12 items-center px-4">
+                        <View className="p-4">
+                            <Text
+                                className="text-7xl text-primary text-center"
+                                style={{
+                                    fontFamily: 'Pacifico_400Regular',
+                                    includeFontPadding: false,
+                                    lineHeight: 110,
+                                    paddingHorizontal: 20
+                                }}
+                            >
+                                Match!
+                            </Text>
+                        </View>
                     </Animated.View>
 
                     {/* Avatars */}

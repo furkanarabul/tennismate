@@ -156,11 +156,14 @@ export const useMatching = () => {
     /**
      * Record a swipe action
      */
+    /**
+     * Record a swipe action
+     */
     const swipeUser = async (
         currentUserId: string,
         targetUserId: string,
         action: 'like' | 'pass'
-    ): Promise<boolean> => {
+    ): Promise<{ isMatch: boolean; matchId?: string }> => {
         try {
             const { error: swipeError } = await supabase.from('swipes').insert([
                 {
@@ -174,15 +177,15 @@ export const useMatching = () => {
 
             // If like, check for match
             if (action === 'like') {
-                const isMatch = await checkAndCreateMatch(currentUserId, targetUserId);
-                return isMatch;
+                const matchId = await checkAndCreateMatch(currentUserId, targetUserId);
+                return { isMatch: !!matchId, matchId: matchId || undefined };
             }
 
-            return false;
+            return { isMatch: false };
         } catch (e: any) {
             setError(e.message);
             console.error('Error in swipeUser:', e);
-            return false;
+            return { isMatch: false };
         }
     };
 
@@ -192,7 +195,7 @@ export const useMatching = () => {
     const checkAndCreateMatch = async (
         currentUserId: string,
         targetUserId: string
-    ): Promise<boolean> => {
+    ): Promise<string | null> => {
         try {
             // Check if target user liked current user
             const { data: reciprocalLike } = await supabase
@@ -203,25 +206,40 @@ export const useMatching = () => {
                 .eq('action', 'like')
                 .maybeSingle();
 
-            if (!reciprocalLike) return false;
+            if (!reciprocalLike) return null;
 
             // It's a match! Create match record
             const user1 = currentUserId < targetUserId ? currentUserId : targetUserId;
             const user2 = currentUserId < targetUserId ? targetUserId : currentUserId;
 
-            const { error: matchError } = await supabase.from('matches').insert([
-                {
-                    user1_id: user1,
-                    user2_id: user2,
-                },
-            ]);
+            const { data: matchData, error: matchError } = await supabase
+                .from('matches')
+                .insert([
+                    {
+                        user1_id: user1,
+                        user2_id: user2,
+                    },
+                ])
+                .select()
+                .single();
 
             if (matchError && matchError.code !== '23505') throw matchError;
 
-            return true;
+            // If match already exists (23505), try to fetch it
+            if (matchError && matchError.code === '23505') {
+                const { data: existingMatch } = await supabase
+                    .from('matches')
+                    .select('id')
+                    .eq('user1_id', user1)
+                    .eq('user2_id', user2)
+                    .single();
+                return existingMatch?.id || null;
+            }
+
+            return matchData?.id || null;
         } catch (e: any) {
             console.error('Error checking match:', e);
-            return false;
+            return null;
         }
     };
 
