@@ -75,6 +75,14 @@ router.beforeEach(async (to, from, next) => {
   else if (to.meta.guestOnly && authStore.isAuthenticated) {
     next('/discover')
   }
+  // If user is authenticated but profile is incomplete, force them to profile page
+  else if (
+    authStore.isAuthenticated &&
+    !authStore.isProfileComplete &&
+    to.path !== '/profile'
+  ) {
+    next('/profile')
+  }
   else {
     next()
   }

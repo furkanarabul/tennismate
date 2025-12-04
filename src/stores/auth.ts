@@ -6,9 +6,20 @@ import { useNotificationStore } from './notifications'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<User | null>(null)
+    const profile = ref<any>(null)
     const loading = ref(true)
 
     const isAuthenticated = computed(() => !!user.value)
+
+    const isProfileComplete = computed(() => {
+        if (!profile.value) return false
+        return !!(
+            profile.value.name &&
+            profile.value.gender &&
+            profile.value.skill_level &&
+            profile.value.location
+        )
+    })
 
     // Initialize auth state
     const initialize = async () => {
@@ -18,9 +29,18 @@ export const useAuthStore = defineStore('auth', () => {
             user.value = session?.user ?? null
 
             // Listen for auth changes
-            supabase.auth.onAuthStateChange((_event, session) => {
+            supabase.auth.onAuthStateChange(async (_event, session) => {
                 user.value = session?.user ?? null
+                if (user.value) {
+                    await fetchProfile()
+                } else {
+                    profile.value = null
+                }
             })
+
+            if (user.value) {
+                await fetchProfile()
+            }
         } catch (error) {
             console.error('Auth initialization error:', error)
         } finally {
@@ -38,6 +58,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (error) throw error
 
         user.value = data.user
+        if (data.user) await fetchProfile()
         return data.user
     }
 
@@ -77,7 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
                         id: data.user.id,
                         email: data.user.email,
                         name: name,
-                        skill_level: 'Intermediate',
+                        skill_level: null, // Force user to select
                         created_at: new Date().toISOString()
                     }
                 ])
@@ -87,6 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
             }
 
             user.value = data.user
+            await fetchProfile()
         }
 
         return data.user
@@ -103,6 +125,7 @@ export const useAuthStore = defineStore('auth', () => {
         } finally {
             // Always clear user state, even if API call fails
             user.value = null
+            profile.value = null
 
             // Reset notifications
             const notificationStore = useNotificationStore()
@@ -115,6 +138,23 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = newUser
     }
 
+    const fetchProfile = async () => {
+        if (!user.value) return
+
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.value.id)
+                .single()
+
+            if (error) throw error
+            profile.value = data
+        } catch (error) {
+            console.error('Error fetching profile:', error)
+        }
+    }
+
     return {
         user,
         loading,
@@ -124,6 +164,9 @@ export const useAuthStore = defineStore('auth', () => {
         loginWithGoogle,
         register,
         logout,
-        setUser
+        setUser,
+        profile,
+        fetchProfile,
+        isProfileComplete
     }
 })

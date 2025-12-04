@@ -129,7 +129,13 @@
             "location": "Konum",
             "skill_level": "Yetenek Seviyesi",
             "bio": "Biyografi",
-            "email": "E-posta"
+            "email": "E-posta",
+            "gender": "Cinsiyet"
+        },
+        "gender": {
+            "male": "Erkek",
+            "female": "Kadın",
+            "other": "Diğer / Belirtmek İstemiyorum"
         },
         "placeholders": {
             "name": "Adın",
@@ -148,6 +154,9 @@
             "intermediate": "Orta",
             "advanced": "İleri",
             "pro": "Profesyonel"
+        },
+        "errors": {
+            "fill_required": "Lütfen * ile işaretli tüm zorunlu alanları doldurun"
         }
     },
     "consent": {
@@ -173,6 +182,12 @@
             "no_players_found": "Oyuncu bulunamadı",
             "close": "Yakın",
             "far": "Uzak"
+        },
+        "gender": {
+            "label": "Cinsiyet",
+            "any": "Farketmez",
+            "male": "Erkek",
+            "female": "Kadın"
         }
     },
     "chat": {
