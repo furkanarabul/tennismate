@@ -172,6 +172,7 @@
         "not_set": "Not set",
         "flexible": "Flexible",
         "days_available": "{n} days available",
+        "show_results": "Show {count} Results",
         "cancel": "Cancel"
     },
     "filters": {
@@ -202,6 +203,8 @@
     "discover": {
         "title": "Discover Players",
         "subtitle": "Find your perfect match nearby",
+        "filters": "Filters",
+        "filters_description": "Adjust your search preferences to find the perfect match.",
         "location_prompt": "Enable location to find players near you",
         "enable_location": "Enable Location",
         "empty_state": {
