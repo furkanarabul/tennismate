@@ -96,7 +96,13 @@
             "message": "Message",
             "play": "Propose Match",
             "scheduled": "Scheduled",
-            "pending": "Pending"
+            "pending": "Pending",
+            "unmatch": "Unmatch"
+        },
+        "unmatch_modal": {
+            "title": "Unmatch User",
+            "description": "Are you sure you want to unmatch with {name}? This action cannot be undone.",
+            "confirm": "Yes, Unmatch"
         },
         "dates": {
             "today": "Today",
@@ -214,8 +220,8 @@
         "match_modal": {
             "title": "It's a Match!",
             "subtitle": "You and {name} liked each other",
-            "keep_playing": "Keep Playing",
-            "view_match": "Send Message"
+            "keep_playing": "Keep Swiping",
+            "view_match": "Message"
         },
         "card": {
             "location_not_set": "Location not set",

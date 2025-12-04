@@ -174,11 +174,14 @@ export const useMatching = () => {
     /**
      * Record a swipe action (like or pass)
      */
+    /**
+     * Record a swipe action (like or pass)
+     */
     const swipeUser = async (
         currentUserId: string,
         targetUserId: string,
         action: 'like' | 'pass'
-    ): Promise<boolean> => {
+    ): Promise<{ isMatch: boolean; matchId?: string }> => {
         try {
             console.log('🎾 Swiping:', { currentUserId, targetUserId, action })
 
@@ -202,16 +205,16 @@ export const useMatching = () => {
             // If like, check for match
             if (action === 'like') {
                 console.log('❤️ Checking for match...')
-                const isMatch = await checkAndCreateMatch(currentUserId, targetUserId)
-                console.log('🎉 Match result:', isMatch)
-                return isMatch
+                const matchId = await checkAndCreateMatch(currentUserId, targetUserId)
+                console.log('🎉 Match result:', matchId)
+                return { isMatch: !!matchId, matchId: matchId || undefined }
             }
 
-            return false
+            return { isMatch: false }
         } catch (e: any) {
             error.value = e.message
             console.error('💥 Error in swipeUser:', e)
-            return false
+            return { isMatch: false }
         }
     }
 
@@ -221,7 +224,7 @@ export const useMatching = () => {
     const checkAndCreateMatch = async (
         currentUserId: string,
         targetUserId: string
-    ): Promise<boolean> => {
+    ): Promise<string | null> => {
         try {
             console.log('🔍 Checking reciprocal like:', { from: targetUserId, to: currentUserId })
 
@@ -238,7 +241,7 @@ export const useMatching = () => {
 
             if (!reciprocalLike) {
                 console.log('❌ No reciprocal like found')
-                return false
+                return null
             }
 
             console.log('💚 Reciprocal like found! Creating match...')
@@ -249,7 +252,7 @@ export const useMatching = () => {
 
             console.log('📝 Creating match:', { user1, user2 })
 
-            const { error: matchError } = await supabase
+            const { data: matchData, error: matchError } = await supabase
                 .from('matches')
                 .insert([
                     {
@@ -257,18 +260,29 @@ export const useMatching = () => {
                         user2_id: user2
                     }
                 ])
+                .select()
+                .single()
 
             if (matchError) {
                 console.error('⚠️ Match insert error:', matchError)
                 // Match might already exist, that's ok
                 if (matchError.code !== '23505') throw matchError
+
+                // If match exists, try to fetch it to return ID
+                const { data: existingMatch } = await supabase
+                    .from('matches')
+                    .select('id')
+                    .or(`and(user1_id.eq.${user1},user2_id.eq.${user2})`)
+                    .single()
+
+                return existingMatch?.id || null
             }
 
-            console.log('🎊 MATCH CREATED!')
-            return true // It's a match!
+            console.log('🎊 MATCH CREATED!', matchData)
+            return matchData.id // Return the new match ID
         } catch (e: any) {
             console.error('💥 Error checking match:', e)
-            return false
+            return null
         }
     }
 
@@ -325,11 +339,55 @@ export const useMatching = () => {
         }
     }
 
+    /**
+     * Unmatch a user (delete match and swipes)
+     */
+    const unmatchUser = async (matchId: string, currentUserId: string, otherUserId: string): Promise<boolean> => {
+        try {
+            console.log('💔 Unmatching users:', { matchId, currentUserId, otherUserId })
+
+            // 1. Delete messages first (to avoid FK constraint issues if ON DELETE CASCADE is missing)
+            const { error: messagesError } = await supabase
+                .from('messages')
+                .delete()
+                .eq('match_id', matchId)
+
+            if (messagesError) {
+                console.warn('⚠️ Error deleting messages (might be empty or RLS restricted):', messagesError)
+                // Continue anyway, as there might be no messages
+            }
+
+            // 2. Delete the match record
+            const { error: matchError } = await supabase
+                .from('matches')
+                .delete()
+                .eq('id', matchId)
+
+            if (matchError) throw matchError
+
+            // 3. Delete swipes (both directions)
+            const { error: swipesError } = await supabase
+                .from('swipes')
+                .delete()
+                .or(`and(user_id.eq.${currentUserId},target_user_id.eq.${otherUserId}),and(user_id.eq.${otherUserId},target_user_id.eq.${currentUserId})`)
+
+            if (swipesError) throw swipesError
+
+            console.log('✅ Unmatch successful')
+            return true
+        } catch (e: any) {
+            console.error('💥 Error unmatching user:', e)
+            error.value = e.message
+            return false
+        }
+    }
+
     return {
         loading,
         error,
         getDiscoverUsers,
         swipeUser,
-        getMatches
+        getMatches,
+        unmatchUser
     }
 }

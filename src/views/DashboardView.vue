@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, MapPin, Calendar, User as UserIcon, Heart, Users, Trophy } from 'lucide-vue-next'
+import { MessageCircle, MapPin, Calendar, User as UserIcon, Heart, Users, Trophy, UserX } from 'lucide-vue-next'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -11,13 +11,14 @@ import { useMatchProposal } from '@/composables/useMatchProposal'
 import { supabase } from '@/lib/supabase'
 import MatchProposalModal from '@/components/MatchProposalModal.vue'
 import MatchDetailsModal from '@/components/MatchDetailsModal.vue'
+import UnmatchConfirmationModal from '@/components/UnmatchConfirmationModal.vue'
 
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
-const { getMatches } = useMatching()
+const { getMatches, unmatchUser } = useMatching()
 const { createProposal, getActiveProposalsForMatches, respondToProposal } = useMatchProposal()
 const { t } = useI18n()
 
@@ -26,6 +27,7 @@ const activeProposals = ref<Record<string, any>>({})
 const loading = ref(true)
 const showProposalModal = ref(false)
 const showDetailsModal = ref(false)
+const showUnmatchModal = ref(false)
 const proposalLoading = ref(false)
 const selectedMatch = ref<any>(null)
 
@@ -92,6 +94,26 @@ const openProposalModal = (match: any) => {
   }
   
   showProposalModal.value = true
+}
+
+const openUnmatchModal = (match: any) => {
+  selectedMatch.value = match
+  showUnmatchModal.value = true
+}
+
+const handleUnmatch = async () => {
+  if (!selectedMatch.value || !authStore.user) return
+  
+  proposalLoading.value = true
+  const success = await unmatchUser(selectedMatch.value.matchId, authStore.user.id, selectedMatch.value.id)
+  
+  if (success) {
+    // Remove from local state
+    matches.value = matches.value.filter(m => m.matchId !== selectedMatch.value.matchId)
+    showUnmatchModal.value = false
+  }
+  
+  proposalLoading.value = false
 }
 
 const handleCreateProposal = async (data: { date: string; time: string; court: string }) => {
@@ -258,6 +280,16 @@ const handleProposalAction = async (id: string, action: 'accepted' | 'declined')
                 <MessageCircle class="h-4 w-4" />
                 {{ t('dashboard.card.message') }}
               </Button>
+
+              <!-- Unmatch Button -->
+              <Button 
+                variant="ghost" 
+                class="w-full h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors mt-1"
+                @click="openUnmatchModal(match)"
+              >
+                <UserX class="h-3.5 w-3.5 mr-2" />
+                {{ t('dashboard.card.unmatch') }}
+              </Button>
             </div>
           </Card>
         </div>
@@ -295,6 +327,14 @@ const handleProposalAction = async (id: string, action: 'accepted' | 'declined')
       @accept="handleProposalAction($event, 'accepted')"
       @decline="handleProposalAction($event, 'declined')"
       @message="handleMessageRedirect"
+    />
+
+    <!-- Unmatch Confirmation Modal -->
+    <UnmatchConfirmationModal
+      v-model:open="showUnmatchModal"
+      :user-name="selectedMatch?.name"
+      :loading="proposalLoading"
+      @confirm="handleUnmatch"
     />
   </div>
 </template>

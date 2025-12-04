@@ -9,6 +9,7 @@ interface Props {
   modelValue: number | null // Distance in km, null = no limit
   playerCounts?: Record<number | string, number> // Legacy prop, can be removed later
   allDistances?: number[] // All player distances for real-time counting
+  totalCount?: number // Total number of players (including those without distance)
 }
 
 const props = defineProps<Props>()
@@ -89,7 +90,10 @@ const isMax = computed(() => sliderValue.value >= 100)
 const currentPlayerCount = computed(() => {
   // If we have all distances, calculate real-time count
   if (props.allDistances) {
-    if (sliderValue.value >= 100) return props.allDistances.length
+    if (sliderValue.value >= 100) {
+      // Use totalCount if available, otherwise fallback to allDistances length
+      return props.totalCount !== undefined ? props.totalCount : props.allDistances.length
+    }
     return props.allDistances.filter(d => d <= sliderValue.value).length
   }
 

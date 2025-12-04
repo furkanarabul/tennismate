@@ -96,7 +96,13 @@
             "message": "Nachricht",
             "play": "Match Vorschlagen",
             "scheduled": "Geplant",
-            "pending": "Ausstehend"
+            "pending": "Ausstehend",
+            "unmatch": "Match auflösen"
+        },
+        "unmatch_modal": {
+            "title": "Match auflösen",
+            "description": "Bist du sicher, dass du das Match mit {name} auflösen möchtest? Dies kann nicht rückgängig gemacht werden.",
+            "confirm": "Ja, auflösen"
         },
         "dates": {
             "today": "Heute",
@@ -214,8 +220,8 @@
         "match_modal": {
             "title": "Es ist ein Match!",
             "subtitle": "Ihr habt euch beide geliked!",
-            "keep_playing": "Weiter spielen",
-            "view_match": "Match ansehen"
+            "keep_playing": "Weiter swipen",
+            "view_match": "Nachricht"
         },
         "card": {
             "location_not_set": "Standort nicht festgelegt",
