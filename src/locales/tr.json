@@ -172,6 +172,7 @@
         "not_set": "Ayarlanmadı",
         "flexible": "Esnek",
         "days_available": "{n} gün uygun",
+        "show_results": "{count} Sonuç Göster",
         "cancel": "İptal"
     },
     "filters": {
@@ -202,6 +203,8 @@
     "discover": {
         "title": "Oyuncuları Keşfet",
         "subtitle": "Yakınındaki mükemmel rakibi bul",
+        "filters": "Filtreler",
+        "filters_description": "Mükemmel eşleşmeyi bulmak için arama tercihlerini ayarla.",
         "location_prompt": "Yakınındaki oyuncuları bulmak için konumu etkinleştir",
         "enable_location": "Konumu Etkinleştir",
         "empty_state": {
