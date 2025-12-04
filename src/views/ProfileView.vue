@@ -187,6 +187,11 @@ onMounted(async () => {
         age: data.age || null,
         gender: data.gender || ''
       }
+      
+      // If profile is incomplete, force edit mode
+      if (!authStore.isProfileComplete) {
+        startEditing()
+      }
     } else {
       // Profile doesn't exist, create it
       const { error: insertError } = await supabase
@@ -215,6 +220,9 @@ onMounted(async () => {
         age: null,
         gender: ''
       }
+      
+      // New profile is always incomplete, force edit mode
+      startEditing()
     }
   } catch (error) {
     console.error('Error loading profile:', error)
@@ -245,7 +253,12 @@ onMounted(async () => {
             </Button>
           </template>
           <template v-else>
-            <Button variant="outline" @click="cancelEditing" :disabled="saving">
+            <Button 
+              v-if="authStore.isProfileComplete" 
+              variant="outline" 
+              @click="cancelEditing" 
+              :disabled="saving"
+            >
               {{ t('profile.actions.cancel') }}
             </Button>
             <Button @click="saveProfile" :disabled="saving" class="gap-2">
