@@ -172,6 +172,7 @@
         "not_set": "Nicht festgelegt",
         "flexible": "Flexibel",
         "days_available": "{n} Tage verfügbar",
+        "show_results": "{count} Ergebnisse anzeigen",
         "cancel": "Abbrechen"
     },
     "filters": {
@@ -202,6 +203,8 @@
     "discover": {
         "title": "Spieler Entdecken",
         "subtitle": "Finde dein perfektes Match in der Nähe",
+        "filters": "Filter",
+        "filters_description": "Passe deine Sucheinstellungen an, um das perfekte Match zu finden.",
         "location_prompt": "Standort aktivieren, um Spieler in deiner Nähe zu finden",
         "enable_location": "Standort aktivieren",
         "empty_state": {
