@@ -654,53 +654,53 @@ watch(players, () => {
         class="relative max-w-md w-full mx-4"
         @click.stop
       >
-        <Card class="overflow-hidden border-none bg-white shadow-2xl rounded-3xl">
+        <Card class="overflow-hidden border-none dark:border dark:border-white/10 bg-white dark:bg-card/10 dark:backdrop-blur-md shadow-2xl rounded-3xl">
           <CardContent class="pt-10 pb-8 px-6 flex flex-col items-center">
             
             <!-- Title -->
-            <h2 class="text-3xl font-bold text-green-600 mb-2 text-center">It's a Match!</h2>
-            <p class="text-gray-500 text-center mb-8">
-              You and <span class="font-semibold text-gray-900">{{ matchedUser.name }}</span> liked each other!
+            <h2 class="text-3xl font-bold text-green-600 dark:text-green-500 mb-2 text-center">It's a Match!</h2>
+            <p class="text-gray-500 dark:text-muted-foreground text-center mb-8">
+              You and <span class="font-semibold text-gray-900 dark:text-foreground">{{ matchedUser.name }}</span> liked each other!
             </p>
 
             <!-- Overlapping Avatars -->
             <div class="relative h-32 w-full flex justify-center items-center mb-8">
               <!-- Current User (Left) -->
-              <div class="absolute left-[20%] z-10 h-28 w-28 rounded-full border-4 border-white shadow-lg overflow-hidden">
+              <div class="absolute left-[20%] z-10 h-28 w-28 rounded-full border-4 border-white dark:border-card shadow-lg overflow-hidden">
                 <img
                   v-if="userProfile?.avatar_url"
                   :src="userProfile.avatar_url"
                   alt="You"
                   class="w-full h-full object-cover"
                 />
-                <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <User class="h-12 w-12 text-gray-400" />
+                <div v-else class="w-full h-full bg-gray-200 dark:bg-muted flex items-center justify-center">
+                  <User class="h-12 w-12 text-gray-400 dark:text-muted-foreground" />
                 </div>
               </div>
 
               <!-- Matched User (Right) -->
-              <div class="absolute right-[20%] z-20 h-28 w-28 rounded-full border-4 border-green-500 shadow-lg overflow-hidden">
+              <div class="absolute right-[20%] z-20 h-28 w-28 rounded-full border-4 border-green-500 dark:border-green-600 shadow-lg overflow-hidden">
                 <img
                   v-if="matchedUser.avatar_url"
                   :src="matchedUser.avatar_url"
                   :alt="matchedUser.name"
                   class="w-full h-full object-cover"
                 />
-                <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <User class="h-12 w-12 text-gray-400" />
+                <div v-else class="w-full h-full bg-gray-200 dark:bg-muted flex items-center justify-center">
+                  <User class="h-12 w-12 text-gray-400 dark:text-muted-foreground" />
                 </div>
               </div>
 
               <!-- Heart Badge -->
-              <div class="absolute z-30 bg-white p-2 rounded-full shadow-md">
-                <Heart class="h-6 w-6 text-green-600 fill-green-600" />
+              <div class="absolute z-30 bg-white dark:bg-card p-2 rounded-full shadow-md">
+                <Heart class="h-6 w-6 text-green-600 dark:text-green-500 fill-green-600 dark:fill-green-500" />
               </div>
             </div>
 
             <!-- Actions -->
             <div class="w-full space-y-3">
               <Button 
-                class="w-full h-12 rounded-md bg-[#1ea955] hover:bg-[#188a44] text-white font-semibold text-base shadow-sm" 
+                class="w-full h-12 rounded-md bg-[#1ea955] hover:bg-[#188a44] dark:bg-green-600 dark:hover:bg-green-700 text-white font-semibold text-base shadow-sm" 
                 @click="handleMessage"
               >
                 <MessageCircle class="h-4 w-4 mr-2" />
@@ -709,7 +709,7 @@ watch(players, () => {
               
               <Button 
                 variant="outline" 
-                class="w-full h-12 rounded-md border-gray-200 text-gray-900 hover:bg-gray-50 font-semibold text-base" 
+                class="w-full h-12 rounded-md border-gray-200 dark:border-gray-700 text-gray-900 dark:text-foreground hover:bg-gray-50 dark:hover:bg-muted font-semibold text-base" 
                 @click="showMatchModal = false"
               >
                 <X class="h-4 w-4 mr-2" />
