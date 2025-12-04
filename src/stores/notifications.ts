@@ -7,15 +7,19 @@ export const useNotificationStore = defineStore('notifications', () => {
     const authStore = useAuthStore()
 
     // State
-    const matchUnreadCounts = ref<Record<string, number>>({})
+    const matchUnreadCounts = ref<Record<string, number>>({}) // Only messages
+    const proposalUnreadCounts = ref<Record<string, number>>({}) // Only proposals
     const loading = ref(false)
     const initialized = ref(false)
 
     // Getters
     const totalUnreadCount = computed(() => {
-        return Object.values(matchUnreadCounts.value).reduce((sum, count) => sum + count, 0)
+        const messageCount = Object.values(matchUnreadCounts.value).reduce((sum, count) => sum + count, 0)
+        const proposalCount = Object.values(proposalUnreadCounts.value).reduce((sum, count) => sum + count, 0)
+        return messageCount + proposalCount
     })
 
+    // Returns ONLY message unread count
     const getUnreadCount = (matchId: string) => {
         return matchUnreadCounts.value[matchId] || 0
     }
@@ -37,12 +41,7 @@ export const useNotificationStore = defineStore('notifications', () => {
 
             const matchIds = matches.map(m => m.id)
 
-            // Get unread messages count per match
-            // We can't easily group by in Supabase JS client for counts without a view or RPC
-            // So we'll fetch unread messages and count them client side for now (or use separate queries)
-            // For scalability, an RPC function `get_unread_counts(user_id)` would be better, 
-            // but for now let's fetch unread messages where receiver is current user
-
+            // 1. Get unread messages count per match
             const { data: unreadMessages, error: msgError } = await supabase
                 .from('messages')
                 .select('match_id')
@@ -52,16 +51,18 @@ export const useNotificationStore = defineStore('notifications', () => {
 
             if (msgError) throw msgError
 
-            // Reset counts
-            const newCounts: Record<string, number> = {}
-            matchIds.forEach(id => newCounts[id] = 0)
+            // Reset message counts
+            const newMessageCounts: Record<string, number> = {}
+            matchIds.forEach(id => newMessageCounts[id] = 0)
 
-            // Aggregate counts
+            // Aggregate message counts
             unreadMessages?.forEach(msg => {
-                newCounts[msg.match_id] = (newCounts[msg.match_id] || 0) + 1
+                newMessageCounts[msg.match_id] = (newMessageCounts[msg.match_id] || 0) + 1
             })
 
-            // Also fetch pending proposals where we are the receiver
+            matchUnreadCounts.value = newMessageCounts
+
+            // 2. Fetch pending proposals where we are the receiver
             const { data: pendingProposals, error: propError } = await supabase
                 .from('match_proposals')
                 .select('match_id')
@@ -71,12 +72,16 @@ export const useNotificationStore = defineStore('notifications', () => {
 
             if (propError) throw propError
 
+            // Reset proposal counts
+            const newProposalCounts: Record<string, number> = {}
+            matchIds.forEach(id => newProposalCounts[id] = 0)
+
             // Add proposals to counts
             pendingProposals?.forEach(prop => {
-                newCounts[prop.match_id] = (newCounts[prop.match_id] || 0) + 1
+                newProposalCounts[prop.match_id] = (newProposalCounts[prop.match_id] || 0) + 1
             })
 
-            matchUnreadCounts.value = newCounts
+            proposalUnreadCounts.value = newProposalCounts
 
         } catch (error) {
             console.error('Error fetching unread counts:', error)
@@ -88,20 +93,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     const subscribeToNotifications = () => {
         if (!authStore.user) return
 
-        // Subscribe to new messages in any match this user is part of
-        // Ideally we subscribe to user's specific channel, but for now let's listen to 'messages' table
-        // and filter. A better approach for RLS is listening to specific match channels, 
-        // but that requires multiple subscriptions.
-        // Alternatively, we can listen to INSERT on messages where we are the receiver? 
-        // Realtime doesn't support complex filters on columns that aren't in the payload easily for RLS.
-        // Let's rely on a global listener for the table, but we need to be careful about volume.
-        // Actually, for a simple app, we can subscribe to `messages` with a filter if possible, 
-        // or just refresh counts on any message insert if we can't filter by receiver.
-
-        // Better approach: Subscribe to a channel for the user's ID if we had a 'notifications' table.
-        // Since we don't, let's subscribe to changes on 'messages' table.
-        // Note: Supabase Realtime broadcasts all changes to subscribers who have permission.
-
+        // Subscribe to new messages
         supabase
             .channel('global-messages')
             .on(
@@ -115,10 +107,6 @@ export const useNotificationStore = defineStore('notifications', () => {
                     const newMessage = payload.new as any
                     // Check if this message belongs to one of our matches and wasn't sent by us
                     if (newMessage.sender_id !== authStore.user?.id) {
-                        // We need to know if we are part of this match. 
-                        // We can check if the matchId exists in our known matches (from fetchUnreadCounts)
-                        // or just optimistically fetch counts again.
-                        // Let's just increment if we track this match
                         const currentCount = matchUnreadCounts.value[newMessage.match_id]
                         if (currentCount !== undefined) {
                             matchUnreadCounts.value[newMessage.match_id] = currentCount + 1
@@ -129,7 +117,6 @@ export const useNotificationStore = defineStore('notifications', () => {
                     }
                 }
             )
-            .subscribe()
             .subscribe()
 
         // Subscribe to match proposals
@@ -144,26 +131,11 @@ export const useNotificationStore = defineStore('notifications', () => {
                 },
                 async (payload) => {
                     const newProposal = payload.new as any
-                    const oldProposal = payload.old as any
 
-                    // Case 1: New proposal received
-                    if (payload.eventType === 'INSERT' && newProposal.receiver_id === authStore.user?.id && newProposal.status === 'pending') {
-                        const currentCount = matchUnreadCounts.value[newProposal.match_id]
-                        if (currentCount !== undefined) {
-                            matchUnreadCounts.value[newProposal.match_id] = currentCount + 1
-                        } else {
-                            await fetchUnreadCounts()
-                        }
-                    }
-
-                    // Case 2: Proposal status changed (e.g. accepted/declined/cancelled)
-                    if (payload.eventType === 'UPDATE') {
-                        // If we are the receiver, any status change might affect our notification count.
-                        // For example: pending -> accepted (count decreases)
-                        // We don't rely on 'old' record because REPLICA IDENTITY might not be FULL.
-                        if (newProposal.receiver_id === authStore.user?.id) {
-                            await fetchUnreadCounts()
-                        }
+                    // We just refresh everything on proposal changes to be safe and simple
+                    // since status changes (pending -> accepted) affect counts too.
+                    if (newProposal.receiver_id === authStore.user?.id || newProposal.sender_id === authStore.user?.id) {
+                        await fetchUnreadCounts()
                     }
                 }
             )
@@ -171,14 +143,10 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     const markMatchAsRead = (matchId: string) => {
-        // Optimistically update UI
+        // Optimistically update UI - only clears messages
         if (matchUnreadCounts.value[matchId]) {
             matchUnreadCounts.value[matchId] = 0
         }
-
-        // The actual DB update happens in useChat.markAsRead or similar, 
-        // but we can also trigger it here if we want this store to be self-contained.
-        // For now, we assume the view calls the API to mark read, and we just update local state.
     }
 
     const initialize = async () => {
@@ -190,12 +158,14 @@ export const useNotificationStore = defineStore('notifications', () => {
 
     const reset = () => {
         matchUnreadCounts.value = {}
+        proposalUnreadCounts.value = {}
         initialized.value = false
         loading.value = false
     }
 
     return {
         matchUnreadCounts,
+        proposalUnreadCounts,
         totalUnreadCount,
         loading,
         getUnreadCount,

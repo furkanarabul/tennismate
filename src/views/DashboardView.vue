@@ -198,13 +198,7 @@ const handleProposalAction = async (id: string, action: 'accepted' | 'declined')
         >
           <!-- Card -->
           <Card class="h-full overflow-hidden bg-card border-2 relative">
-            <!-- Unread Badge -->
-            <div 
-              v-if="notificationStore.getUnreadCount(match.matchId) > 0"
-              class="absolute top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm ring-2 ring-background"
-            >
-              <MessageCircle class="h-3.5 w-3.5 fill-current" />
-            </div>
+
 
             <CardHeader class="pb-4">
               <div class="flex items-start gap-4">
@@ -254,7 +248,7 @@ const handleProposalAction = async (id: string, action: 'accepted' | 'declined')
             <!-- Actions -->
             <div class="p-4 pt-0 flex flex-col gap-3">
               <Button 
-                class="w-full gap-2"
+                class="w-full gap-2 relative"
                 :class="[
                   getProposalStatus(match.matchId)?.status === 'accepted' 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
@@ -264,6 +258,14 @@ const handleProposalAction = async (id: string, action: 'accepted' | 'declined')
                 ]"
                 @click="openProposalModal(match)"
               >
+                <!-- Notification Badge -->
+                <div 
+                  v-if="getProposalStatus(match.matchId)?.status === 'pending' && getProposalStatus(match.matchId)?.sender_id !== authStore.user?.id"
+                  class="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 text-xs font-bold border-2 border-background z-10"
+                >
+                  1
+                </div>
+
                 <Calendar class="h-4 w-4" />
                 <span v-if="getProposalStatus(match.matchId)?.status === 'accepted'">
                   {{ t('dashboard.card.scheduled') }}
@@ -276,7 +278,15 @@ const handleProposalAction = async (id: string, action: 'accepted' | 'declined')
                 </span>
               </Button>
 
-              <Button class="w-full gap-2" variant="outline" @click="router.push(`/chat/${match.matchId}`)">
+              <Button class="w-full gap-2 relative" variant="outline" @click="router.push(`/chat/${match.matchId}`)">
+                <!-- Notification Badge -->
+                <div 
+                  v-if="notificationStore.getUnreadCount(match.matchId) > 0"
+                  class="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 text-xs font-bold border-2 border-background z-10"
+                >
+                  {{ notificationStore.getUnreadCount(match.matchId) > 99 ? '99+' : notificationStore.getUnreadCount(match.matchId) }}
+                </div>
+
                 <MessageCircle class="h-4 w-4" />
                 {{ t('dashboard.card.message') }}
               </Button>
