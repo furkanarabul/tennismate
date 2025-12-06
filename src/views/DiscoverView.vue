@@ -777,9 +777,22 @@ watch(players, () => {
                 </div>
               </div>
 
-              <!-- Heart Badge -->
+              <!-- Tennis Ball Badge -->
               <div class="absolute z-30 bg-white dark:bg-card p-2 rounded-full shadow-md">
-                <Heart class="h-6 w-6 text-green-600 dark:text-green-500 fill-green-600 dark:fill-green-500" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="h-6 w-6 text-green-600 dark:text-green-500"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12C2 12 5 12 8 9C11 6 12 2 12 2" />
+                  <path d="M22 12C22 12 19 12 16 15C13 18 12 22 12 22" />
+                </svg>
               </div>
             </div>
 
