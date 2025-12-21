@@ -38,7 +38,7 @@ const userProfile = ref<any>(null)
 const showBanner = ref(true)
 
 // Location filtering
-const { getCurrentPosition, loading: geoLoading, error: geoError } = useGeolocation()
+const { getCurrentPosition, loading: geoLoading, error: geoError, checkPermission } = useGeolocation()
 const maxDistance = ref<number | null>(25) // Default: 25km
 const userLatitude = ref<number | null>(null)
 const userLongitude = ref<number | null>(null)
@@ -314,11 +314,15 @@ const resetCard = () => {
   }
 }
 
+const reloadPage = () => {
+  window.location.reload()
+}
+
 // Request location permission
 const requestLocation = async () => {
   try {
     const position = await getCurrentPosition()
-    // Fix: Check if position exists before accessing coords
+    
     if (position) {
       userLatitude.value = position.latitude
       userLongitude.value = position.longitude
@@ -337,13 +341,16 @@ const requestLocation = async () => {
       
       await loadUsers()
     } else {
+       // If failed, check permission status for debugging
+       if (checkPermission) {
+         const status = await checkPermission()
+         console.log('📍 Permission status check:', status)
+       }
        showLocationPrompt.value = true
     }
   } catch (err: any) {
-    console.error('Location error:', err)
-    if (err.code === 1) { // Permission denied
-      showLocationPrompt.value = true
-    }
+    console.error('Unexpected location error:', err)
+    showLocationPrompt.value = true
   }
 }
 
@@ -383,9 +390,8 @@ onMounted(async () => {
           lat: userLatitude.value, 
           lng: userLongitude.value 
         })
-        // Load users with saved location
+        // Load users with saved location initially
         await loadUsers()
-        return
       }
     }
   } catch (error: any) {
@@ -396,8 +402,8 @@ onMounted(async () => {
     })
   }
 
-  // If no saved location, try to request it
-  console.log('⚠️ No saved location, requesting from browser...')
+  // Always request fresh location from browser to ensure accuracy
+  console.log('📍 Requesting fresh location from browser...')
   await requestLocation()
 })
 
@@ -432,7 +438,9 @@ watch(players, () => {
           <MapPin class="h-5 w-5 text-primary" />
           <p class="text-sm font-medium">{{ t('discover.location_prompt') }}</p>
         </div>
-        <Button size="sm" @click="requestLocation">{{ t('discover.enable_location') }}</Button>
+        <Button size="sm" @click="geoError?.code === 1 ? reloadPage() : requestLocation()">
+          {{ geoError?.code === 1 ? t('common.reload_page') : t('discover.enable_location') }}
+        </Button>
       </div>
 
       <!-- Location & Distance Filter -->
@@ -498,50 +506,7 @@ watch(players, () => {
         </DialogContent>
       </Dialog>
 
-      <!-- Location Required Prompt (BLOCKING) -->
-      <div v-if="!userLatitude || showLocationPrompt" class="max-w-md mx-auto">
-        <Card class="border-2 border-primary/30 bg-gradient-to-b from-primary/10 via-primary/5 to-background">
-          <CardContent class="p-6 text-center space-y-4">
-            <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <MapPin class="h-8 w-8 text-primary" />
-            </div>
-            
-            <div>
-              <h3 class="text-xl font-bold mb-2">{{ t('discover.location_required.title') }}</h3>
-              <p class="text-muted-foreground mb-4">
-                {{ t('discover.location_required.description') }}
-              </p>
-            </div>
 
-            <div v-if="geoError" class="p-4 text-sm bg-destructive/10 border border-destructive/20 rounded-md space-y-2">
-              <p class="font-semibold text-destructive">{{ geoError.message }}</p>
-              <div class="text-muted-foreground space-y-1 text-xs">
-                <p class="font-medium">{{ t('discover.location_required.how_to_fix') }}</p>
-                <ul class="list-disc list-inside space-y-1">
-                  <li>{{ t('discover.location_required.steps.1') }}</li>
-                  <li>{{ t('discover.location_required.steps.2') }}</li>
-                  <li>{{ t('discover.location_required.steps.3') }}</li>
-                  <li>{{ t('discover.location_required.steps.4') }}</li>
-                </ul>
-              </div>
-            </div>
-
-            <Button 
-              @click="requestLocation"
-              class="w-full"
-              size="lg"
-              :disabled="geoLoading"
-            >
-              <Navigation class="h-5 w-5 mr-2" />
-              {{ geoLoading ? t('discover.location_required.button.loading') : geoError ? t('discover.location_required.button.retry') : t('discover.location_required.button.enable') }}
-            </Button>
-
-            <p class="text-xs text-muted-foreground">
-              {{ t('discover.location_required.privacy_note') }}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
       <!-- Player Cards (only show when location enabled) -->
       <div v-if="userLatitude && !showLocationPrompt">
