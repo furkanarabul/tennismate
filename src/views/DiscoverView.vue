@@ -341,7 +341,15 @@ const requestLocation = async () => {
       
       await loadUsers()
     } else {
-       // If failed, check permission status for debugging
+       // If failed, but we have a saved location from DB, allow it!
+       if (userLatitude.value != null && userLongitude.value != null) {
+         console.warn('⚠️ Live location failed, using saved DB location instead.')
+         showLocationPrompt.value = false
+         await loadUsers()
+         return
+       }
+
+       // Only show prompt if we truly have no location
        if (checkPermission) {
          const status = await checkPermission()
          console.log('📍 Permission status check:', status)
@@ -349,6 +357,13 @@ const requestLocation = async () => {
        showLocationPrompt.value = true
     }
   } catch (err: any) {
+    // Similarly for unexpected errors
+    if (userLatitude.value != null && userLongitude.value != null) {
+         console.warn('⚠️ Location error caught, using saved DB location.', err)
+         showLocationPrompt.value = false
+         return
+    }
+
     console.error('Unexpected location error:', err)
     showLocationPrompt.value = true
   }

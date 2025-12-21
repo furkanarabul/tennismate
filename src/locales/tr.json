@@ -159,6 +159,20 @@
             "fill_required": "Lütfen * ile işaretli tüm zorunlu alanları doldurun"
         }
     },
+    "profile_completion": {
+        "title": "Profilini Tamamla",
+        "subtitle": "Profilini tamamlayarak potansiyel tenis partnerlerinin dikkatini çek",
+        "complete": "Tamamlandı",
+        "items_remaining": "öğe kaldı",
+        "button": "Profili Tamamla",
+        "items": {
+            "photo": "Profil Fotoğrafı",
+            "location": "Konum",
+            "skill_level": "Yetenek Seviyesi",
+            "bio": "Biyografi",
+            "availability": "Uygunluk"
+        }
+    },
     "consent": {
         "title": "Gizlilik ve Konum",
         "description": "Yakınındaki tenis partnerlerini bulmak için konumunu kullanıyoruz. Hassas konumun güvenli bir şekilde saklanır ve sadece eşleşme için kullanılır. Reddedebilirsin, ancak konum tabanlı özellikler devre dışı kalır.",
@@ -253,20 +267,6 @@
         "actions": {
             "pass": "Pas",
             "match": "Eşleş"
-        },
-        "profile_completion": {
-            "title": "Profilini Tamamla",
-            "subtitle": "Profilini tamamlayarak potansiyel tenis partnerlerinin dikkatini çek",
-            "complete": "Tamamlandı",
-            "items_remaining": "öğe kaldı",
-            "button": "Profili Tamamla",
-            "items": {
-                "photo": "Profil Fotoğrafı",
-                "location": "Konum",
-                "skill_level": "Yetenek Seviyesi",
-                "bio": "Biyografi",
-                "availability": "Uygunluk"
-            }
         }
     },
     "proposal": {

@@ -20,7 +20,7 @@ export function useGeolocation() {
         return 'geolocation' in navigator
     })
 
-    const getCurrentPosition = async (retrying = false): Promise<GeolocationCoordinates | null> => {
+    const getCurrentPosition = async (retryLevel = 0): Promise<GeolocationCoordinates | null> => {
         // Check for consent first
         const consent = localStorage.getItem('tennis_mate_consent')
         if (consent === 'declined') {
@@ -42,7 +42,16 @@ export function useGeolocation() {
         loading.value = true
         error.value = null
 
-        console.log(`🗺️ Requesting location... ${retrying ? '(Retry with High Accuracy)' : ''}`)
+        const isRetrying = retryLevel > 0
+        // Level 0: Normal (High Accuracy, 10s)
+        // Level 1: Retry (High Accuracy, 20s)
+        // Level 2: Fallback (Low Accuracy, 20s)
+
+        const useHighAccuracy = retryLevel < 2
+        const timeout = retryLevel === 0 ? 10000 : 20000
+        const maxAge = retryLevel === 0 ? 60000 : 0
+
+        console.log(`🗺️ Requesting location... (Attempt ${retryLevel + 1}, HighAccuracy: ${useHighAccuracy})`)
 
         try {
             const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -50,10 +59,9 @@ export function useGeolocation() {
                     resolve,
                     reject,
                     {
-                        // On retry, force high accuracy which often resolves "Location Unknown" on macOS/iOS
-                        enableHighAccuracy: retrying,
-                        timeout: retrying ? 15000 : 10000, // Shorter timeout for first attempt
-                        maximumAge: retrying ? 0 : 60000 // Force fresh on retry
+                        enableHighAccuracy: useHighAccuracy,
+                        timeout: timeout,
+                        maximumAge: maxAge
                     }
                 )
             })
@@ -71,16 +79,20 @@ export function useGeolocation() {
             console.error('❌ Location error details:', {
                 code: err.code,
                 message: err.message,
-                PERMISSION_DENIED: err.PERMISSION_DENIED,
-                POSITION_UNAVAILABLE: err.POSITION_UNAVAILABLE,
-                TIMEOUT: err.TIMEOUT
+                retryLevel
             })
 
-            // Retry logic for Position Unavailable (2) or Timeout (3)
-            // This is common on macOS Safari/Chrome when "Low Power Mode" is on or Wi-Fi triangulation fails
-            if (!retrying && (err.code === 2 || err.code === 3)) {
-                console.log('🔄 Retrying location with high accuracy...')
-                return getCurrentPosition(true)
+            // Retry logic
+            // If Level 0 fails with Timeout(3) or Unavailable(2), try Level 1 (High Accuracy, Longer Timeout)
+            if (retryLevel === 0 && (err.code === 2 || err.code === 3)) {
+                console.log('🔄 Retrying location with higher timeout...')
+                return getCurrentPosition(1)
+            }
+
+            // If Level 1 fails, try Level 2 (Low Accuracy / IP based) as last resort
+            if (retryLevel === 1 && (err.code === 2 || err.code === 3)) {
+                console.log('🔄 Retrying location with low accuracy (IP-based fallback)...')
+                return getCurrentPosition(2)
             }
 
             const geoError: LocationError = {
@@ -90,7 +102,7 @@ export function useGeolocation() {
             error.value = geoError
             return null
         } finally {
-            if (!retrying) loading.value = false
+            if (retryLevel === 0) loading.value = false
         }
     }
 
