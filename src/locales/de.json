@@ -159,6 +159,20 @@
             "fill_required": "Bitte füllen Sie alle mit * markierten Pflichtfelder aus"
         }
     },
+    "profile_completion": {
+        "title": "Vervollständige dein Profil",
+        "subtitle": "Hebe dich von anderen Tennispartnern ab, indem du dein Profil vervollständigst",
+        "complete": "Fertig",
+        "items_remaining": "Elemente verbleibend",
+        "button": "Profil vervollständigen",
+        "items": {
+            "photo": "Profilbild",
+            "location": "Standort",
+            "skill_level": "Spielstärke",
+            "bio": "Bio",
+            "availability": "Verfügbarkeit"
+        }
+    },
     "consent": {
         "title": "Datenschutz & Standort",
         "description": "Wir nutzen deinen Standort, um Tennispartner in der Nähe zu finden. Dein genauer Standort wird sicher gespeichert und nur für das Matching verwendet. Du kannst ablehnen, aber standortbasierte Funktionen werden deaktiviert.",
@@ -253,20 +267,6 @@
         "actions": {
             "pass": "Passen",
             "match": "Matchen"
-        },
-        "profile_completion": {
-            "title": "Vervollständige dein Profil",
-            "subtitle": "Hebe dich von anderen Tennispartnern ab, indem du dein Profil vervollständigst",
-            "complete": "Fertig",
-            "items_remaining": "Elemente verbleibend",
-            "button": "Profil vervollständigen",
-            "items": {
-                "photo": "Profilbild",
-                "location": "Standort",
-                "skill_level": "Spielstärke",
-                "bio": "Bio",
-                "availability": "Verfügbarkeit"
-            }
         }
     },
     "proposal": {

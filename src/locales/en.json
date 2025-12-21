@@ -159,6 +159,20 @@
             "fill_required": "Please fill in all mandatory fields marked with *"
         }
     },
+    "profile_completion": {
+        "title": "Complete Your Profile",
+        "subtitle": "Stand out to potential tennis partners by completing your profile",
+        "complete": "Complete",
+        "items_remaining": "items remaining",
+        "button": "Complete Profile",
+        "items": {
+            "photo": "Profile Photo",
+            "location": "Location",
+            "skill_level": "Skill Level",
+            "bio": "Bio",
+            "availability": "Availability"
+        }
+    },
     "consent": {
         "title": "Privacy & Location",
         "description": "We use your location to find tennis partners nearby. Your precise location is stored securely and only used for matching. You can decline, but location-based features will be disabled.",
@@ -253,20 +267,6 @@
         "actions": {
             "pass": "Pass",
             "match": "Match"
-        },
-        "profile_completion": {
-            "title": "Complete Your Profile",
-            "subtitle": "Stand out to potential tennis partners by completing your profile",
-            "complete": "Complete",
-            "items_remaining": "items remaining",
-            "button": "Complete Profile",
-            "items": {
-                "photo": "Profile Photo",
-                "location": "Location",
-                "skill_level": "Skill Level",
-                "bio": "Bio",
-                "availability": "Availability"
-            }
         }
     },
     "proposal": {
