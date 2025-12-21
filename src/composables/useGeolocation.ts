@@ -68,7 +68,13 @@ export function useGeolocation() {
 
             return coordinates.value
         } catch (err: any) {
-            console.error('❌ Location error:', err)
+            console.error('❌ Location error details:', {
+                code: err.code,
+                message: err.message,
+                PERMISSION_DENIED: err.PERMISSION_DENIED,
+                POSITION_UNAVAILABLE: err.POSITION_UNAVAILABLE,
+                TIMEOUT: err.TIMEOUT
+            })
 
             // Retry logic for Position Unavailable (2) or Timeout (3)
             // This is common on macOS Safari/Chrome when "Low Power Mode" is on or Wi-Fi triangulation fails
@@ -101,6 +107,17 @@ export function useGeolocation() {
         }
     }
 
+    const checkPermission = async (): Promise<PermissionState | null> => {
+        if (!('permissions' in navigator)) return null
+        try {
+            const result = await navigator.permissions.query({ name: 'geolocation' })
+            return result.state
+        } catch (err) {
+            console.error('Error checking permissions:', err)
+            return null
+        }
+    }
+
     const clearLocation = () => {
         coordinates.value = null
         error.value = null
@@ -112,6 +129,7 @@ export function useGeolocation() {
         loading,
         isSupported,
         getCurrentPosition,
-        clearLocation
+        clearLocation,
+        checkPermission
     }
 }
