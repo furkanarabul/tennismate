@@ -162,7 +162,44 @@ export const useCommunityStore = defineStore('community', () => {
         createComment,
         deleteComment,
         updateComment,
-        toggleCommentLike
+        toggleCommentLike,
+        deletePost,
+        updatePost
+    }
+
+    async function deletePost(postId: string) {
+        try {
+            const { error } = await supabase
+                .from('posts')
+                .delete()
+                .eq('id', postId)
+
+            if (error) throw error
+
+            posts.value = posts.value.filter(p => p.id !== postId)
+        } catch (err) {
+            console.error('Error deleting post:', err)
+            throw err
+        }
+    }
+
+    async function updatePost(postId: string, content: string) {
+        try {
+            const { error } = await supabase
+                .from('posts')
+                .update({ content })
+                .eq('id', postId)
+
+            if (error) throw error
+
+            const post = posts.value.find(p => p.id === postId)
+            if (post) {
+                post.content = content
+            }
+        } catch (err) {
+            console.error('Error updating post:', err)
+            throw err
+        }
     }
 
     async function fetchComments(postId: string) {

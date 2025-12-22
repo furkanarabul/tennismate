@@ -1,20 +1,33 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatDistanceToNow } from 'date-fns'
+import { enUS, de, tr } from 'date-fns/locale'
 import { Heart, MessageCircle, MoreHorizontal, Send, Trash2, Loader2, Edit2, Reply, X, CornerDownRight } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import Avatar from '@/components/ui/avatar/Avatar.vue'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { useCommunityStore, type Post, type Comment } from '@/stores/community'
 import { useAuthStore } from '@/stores/auth'
+import { onClickOutside } from '@vueuse/core'
 
 const props = defineProps<{
   post: Post
 }>()
 
+const { t, locale } = useI18n()
 const store = useCommunityStore()
 const authStore = useAuthStore()
+
+const dateLocale = computed(() => {
+  switch (locale.value) {
+    case 'de': return de
+    case 'tr': return tr
+    default: return enUS
+  }
+})
 
 const showComments = ref(false)
 const comments = ref<Comment[]>([])
@@ -22,7 +35,14 @@ const loadingComments = ref(false)
 const newComment = ref('')
 const submittingComment = ref(false)
 
-// Editing state
+// Post Editing state
+const isEditingPost = ref(false)
+const editPostContent = ref('')
+const updatingPost = ref(false)
+const showMenu = ref(false)
+const menuRef = ref<HTMLElement | null>(null)
+
+// Comment Editing state
 const editingCommentId = ref<string | null>(null)
 const editContent = ref('')
 const updatingComment = ref(false)
@@ -35,6 +55,10 @@ const submittingReply = ref(false)
 
 const isOwnPost = computed(() => {
   return authStore.user?.id === props.post.user_id
+})
+
+onClickOutside(menuRef, () => {
+  showMenu.value = false
 })
 
 // Group comments into parents and children
@@ -125,7 +149,7 @@ const startEditComment = (comment: Comment) => {
 
 const startReply = (comment: Comment) => {
   replyingToId.value = comment.id
-  replyingToUser.value = comment.profiles?.name || 'User'
+  replyingToUser.value = comment.profiles?.name || t('community.unknown_user')
   editingCommentId.value = null // Cancel edit if replying
   replyContent.value = ''
 }
@@ -169,11 +193,51 @@ const handleLikeComment = (comment: Comment) => {
 const isOwnComment = (userId: string) => {
   return authStore.user?.id === userId
 }
+
+// Post Actions
+const handleEditPost = () => {
+  isEditingPost.value = true
+  editPostContent.value = props.post.content
+  showMenu.value = false
+}
+
+const handleDeletePost = async () => {
+  if (!confirm(t('community.delete_post_confirm'))) return // TODO: Use custom dialog
+
+  try {
+    await store.deletePost(props.post.id)
+  } catch (err) {
+    console.error('Failed to delete post', err)
+  }
+}
+
+const toggleMenu = () => {
+  showMenu.value = !showMenu.value
+}
+
+const cancelEditPost = () => {
+  isEditingPost.value = false
+  editPostContent.value = ''
+}
+
+const handleUpdatePost = async () => {
+  if (!editPostContent.value.trim()) return
+  
+  updatingPost.value = true
+  try {
+    await store.updatePost(props.post.id, editPostContent.value)
+    isEditingPost.value = false
+  } catch (err) {
+    console.error('Failed to update post', err)
+  } finally {
+    updatingPost.value = false
+  }
+}
 </script>
 
 <template>
   <Card class="mb-4 overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow duration-200">
-    <CardHeader class="p-4 flex flex-row items-center gap-4 pb-2">
+    <CardHeader class="p-4 flex flex-row items-center gap-4 pb-2 relative">
       <Avatar 
         :src="post.profiles?.avatar_url" 
         :fallback="post.profiles?.name?.charAt(0).toUpperCase() || 'U'"
@@ -182,9 +246,9 @@ const isOwnComment = (userId: string) => {
       
       <div class="flex-1">
         <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-sm">{{ post.profiles?.name || 'Unknown User' }}</h3>
+          <h3 class="font-semibold text-sm">{{ post.profiles?.name || t('community.unknown_user') }}</h3>
           <span class="text-xs text-muted-foreground">
-            {{ formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) }}
+            {{ formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: dateLocale }) }}
           </span>
         </div>
         <p v-if="post.post_type !== 'general'" 
@@ -194,19 +258,68 @@ const isOwnComment = (userId: string) => {
              'text-amber-500': post.post_type === 'question'
            }"
         >
-          {{ post.post_type.replace('_', ' ') }}
+          {{ t(`community.types.${post.post_type}`) }}
         </p>
       </div>
 
-      <Button variant="ghost" size="icon" class="h-8 w-8 -mr-2 text-muted-foreground">
+      <!-- Action Menu -->
+       <div v-if="isOwnPost" class="relative" ref="menuRef">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          class="h-8 w-8 -mr-2 text-muted-foreground"
+          @click="toggleMenu"
+        >
+          <MoreHorizontal class="h-4 w-4" />
+        </Button>
+        
+        <div 
+          v-if="showMenu"
+          class="absolute right-0 top-full mt-1 w-32 bg-popover border border-border rounded-md shadow-md z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        >
+          <button 
+            @click="handleEditPost"
+            class="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors flex items-center gap-2"
+          >
+            <Edit2 class="h-3 w-3" />
+            {{ t('community.edit') }}
+          </button>
+          <button 
+            @click="handleDeletePost"
+            class="w-full text-left px-3 py-2 text-xs hover:bg-red-50 text-red-500 transition-colors flex items-center gap-2"
+          >
+            <Trash2 class="h-3 w-3" />
+            {{ t('community.delete') }}
+          </button>
+        </div>
+      </div>
+      <Button v-else variant="ghost" size="icon" class="h-8 w-8 -mr-2 text-muted-foreground">
         <MoreHorizontal class="h-4 w-4" />
       </Button>
+
     </CardHeader>
 
     <CardContent class="p-4 pt-0">
-      <p class="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{{ post.content }}</p>
+      <div v-if="isEditingPost" class="space-y-3">
+        <Textarea 
+          v-model="editPostContent" 
+          class="min-h-[100px] text-sm"
+          :disabled="updatingPost"
+        />
+        <div class="flex justify-end gap-2">
+          <Button size="sm" variant="ghost" @click="cancelEditPost" :disabled="updatingPost">
+             {{ t('community.cancel') }}
+          </Button>
+          <Button size="sm" @click="handleUpdatePost" :disabled="updatingPost || !editPostContent.trim()">
+             <Loader2 v-if="updatingPost" class="h-4 w-4 animate-spin mr-1" />
+             {{ t('community.save') }}
+          </Button>
+        </div>
+      </div>
+
+      <p v-else class="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{{ post.content }}</p>
       
-      <div v-if="post.media_url" class="mt-3 rounded-lg overflow-hidden border border-border">
+      <div v-if="post.media_url && !isEditingPost" class="mt-3 rounded-lg overflow-hidden border border-border">
         <img :src="post.media_url" alt="Post content" class="w-full h-auto object-cover max-h-[400px]" />
       </div>
 
@@ -222,7 +335,7 @@ const isOwnComment = (userId: string) => {
           }"
           :disabled="isOwnPost"
           @click="handleLike"
-          :title="isOwnPost ? 'You cannot like your own post' : ''"
+          :title="isOwnPost ? t('community.cannot_like_own') : ''"
         >
           <Heart class="h-4 w-4" :class="{ 'fill-current': post.user_has_liked }" />
           <span class="text-xs font-medium">{{ post.likes_count || 0 }}</span>
@@ -250,7 +363,7 @@ const isOwnComment = (userId: string) => {
         <!-- Comments List -->
         <div v-else class="space-y-4 mb-4">
           <div v-if="comments.length === 0" class="text-center py-2 text-xs text-muted-foreground">
-            No comments yet.
+            {{ t('community.no_comments') }}
           </div>
           
           <!-- Parent Comments Loop -->
@@ -273,19 +386,19 @@ const isOwnComment = (userId: string) => {
                  <div class="flex gap-2">
                    <Button size="sm" variant="default" class="h-6 px-2 text-[10px]" @click="handleUpdateComment" :disabled="updatingComment">
                       <Loader2 v-if="updatingComment" class="h-3 w-3 animate-spin mr-1" />
-                      Save
+                      {{ t('community.save') }}
                    </Button>
                    <Button size="sm" variant="ghost" class="h-6 px-2 text-[10px]" @click="cancelEdit" :disabled="updatingComment">
-                      Cancel
+                      {{ t('community.cancel') }}
                    </Button>
                  </div>
               </div>
 
               <div v-else class="bg-muted/40 rounded-lg p-3 text-sm relative group">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="font-semibold text-xs">{{ comment.profiles?.name || 'Unknown' }}</span>
+                  <span class="font-semibold text-xs">{{ comment.profiles?.name || t('community.unknown_user') }}</span>
                   <span class="text-[10px] text-muted-foreground">
-                    {{ formatDistanceToNow(new Date(comment.created_at), { addSuffix: true }) }}
+                    {{ formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: dateLocale }) }}
                   </span>
                 </div>
                 <p class="text-foreground/90 break-words">{{ comment.content }}</p>
@@ -314,7 +427,7 @@ const isOwnComment = (userId: string) => {
                     class="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
                   >
                     <Reply class="h-3 w-3" />
-                    Reply
+                    {{ t('community.reply_button') }}
                   </button>
 
                   <!-- Edit/Delete (if own) -->
@@ -324,14 +437,14 @@ const isOwnComment = (userId: string) => {
                       class="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
                     >
                       <Edit2 class="h-3 w-3" />
-                      Edit
+                      {{ t('community.edit') }}
                     </button>
                     <button 
                       @click="handleDeleteComment(comment.id)"
                       class="text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
                     >
                       <Trash2 class="h-3 w-3" />
-                      Delete
+                      {{ t('community.delete') }}
                     </button>
                   </template>
               </div>
@@ -341,13 +454,13 @@ const isOwnComment = (userId: string) => {
                   <div class="flex items-center justify-between mb-1.5 px-1">
                       <span class="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
                         <CornerDownRight class="h-3 w-3" />
-                        Replying to <span class="text-primary font-semibold">@{{ replyingToUser }}</span>
+                        {{ t('community.replying_to') }} <span class="text-primary font-semibold">@{{ replyingToUser }}</span>
                       </span>
                   </div>
                   <div class="flex gap-2 items-center">
                     <Input 
                       v-model="replyContent"
-                      placeholder="Write your reply..."
+                      :placeholder="t('community.reply_placeholder')"
                       class="h-8 text-xs bg-background"
                       @keyup.enter="handleReply(comment.id)"
                       :disabled="submittingReply"
@@ -387,15 +500,15 @@ const isOwnComment = (userId: string) => {
                                 :disabled="updatingComment"
                              />
                              <div class="flex gap-2">
-                               <Button size="sm" variant="default" class="h-5 px-2 text-[10px]" @click="handleUpdateComment" :disabled="updatingComment">Save</Button>
-                               <Button size="sm" variant="ghost" class="h-5 px-2 text-[10px]" @click="cancelEdit" :disabled="updatingComment">Cancel</Button>
+                               <Button size="sm" variant="default" class="h-5 px-2 text-[10px]" @click="handleUpdateComment" :disabled="updatingComment">{{ t('community.save') }}</Button>
+                               <Button size="sm" variant="ghost" class="h-5 px-2 text-[10px]" @click="cancelEdit" :disabled="updatingComment">{{ t('community.cancel') }}</Button>
                              </div>
                           </div>
                           
                           <div v-else class="bg-muted/30 rounded-lg p-2 text-xs">
                              <div class="flex items-center justify-between mb-0.5">
                                 <span class="font-semibold text-xs">{{ reply.profiles?.name }}</span>
-                                <span class="text-[10px] text-muted-foreground">{{ formatDistanceToNow(new Date(reply.created_at), { addSuffix: true }) }}</span>
+                                <span class="text-[10px] text-muted-foreground">{{ formatDistanceToNow(new Date(reply.created_at), { addSuffix: true, locale: dateLocale }) }}</span>
                              </div>
                              <p class="text-foreground/90">{{ reply.content }}</p>
                           </div>
@@ -435,7 +548,7 @@ const isOwnComment = (userId: string) => {
         <div class="flex gap-2 items-center">
           <Input 
             v-model="newComment"
-            placeholder="Write a comment..." 
+            :placeholder="t('community.comment_placeholder')" 
             class="h-9 text-sm"
             @keyup.enter="handleAddComment"
             :disabled="submittingComment"

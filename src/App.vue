@@ -87,7 +87,7 @@ watch(() => authStore.user, async (user) => {
             class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
           >
             <Users class="h-4 w-4" />
-            Community
+            {{ $t('app.nav.community') }}
           </RouterLink>
           <RouterLink to="/dashboard" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 relative">
             <ListTodo class="h-4 w-4" />
@@ -158,7 +158,7 @@ watch(() => authStore.user, async (user) => {
           :class="$route.path === '/community' ? 'text-primary' : 'text-muted-foreground'"
         >
           <Users class="h-5 w-5" />
-          <span class="text-xs font-medium">Community</span>
+          <span class="text-xs font-medium">{{ $t('app.nav.community') }}</span>
         </RouterLink>
         
         <RouterLink 
