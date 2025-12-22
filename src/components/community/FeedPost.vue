@@ -293,9 +293,7 @@ const handleUpdatePost = async () => {
           </button>
         </div>
       </div>
-      <Button v-else variant="ghost" size="icon" class="h-8 w-8 -mr-2 text-muted-foreground">
-        <MoreHorizontal class="h-4 w-4" />
-      </Button>
+
 
     </CardHeader>
 
