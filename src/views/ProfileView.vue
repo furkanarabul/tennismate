@@ -165,6 +165,18 @@ onMounted(async () => {
 
   loading.value = true
   
+  // Use cached profile from store if available
+  if (authStore.profile) {
+    initProfile(authStore.profile)
+    loading.value = false
+    
+    // Check if we need to force edit mode (incomplete profile)
+    if (!authStore.isProfileComplete) {
+      startEditing()
+    }
+    return
+  }
+  
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -175,28 +187,19 @@ onMounted(async () => {
     if (error) throw error
 
     if (data) {
-      // Profile exists
-      profile.value = {
-        name: data.name || 'No name',
-        email: data.email || authStore.user.email || '',
-        skillLevel: data.skill_level || '',
-        location: data.location || '',
-        bio: data.bio || '',
-        availability: data.availability ? JSON.parse(data.availability) : [],
-        avatar_url: data.avatar_url || '',
-        age: data.age || null,
-        gender: data.gender || ''
-      }
+      initProfile(data)
       
       // If profile is incomplete, force edit mode
       if (!authStore.isProfileComplete) {
         startEditing()
       }
     } else {
-      // Profile doesn't exist, create it
-      const { error: insertError } = await supabase
+      // Profile doesn't exist, try to create it
+      // Use upsert to handle race conditions where profile might have been created
+      // just now by another process/tab or previous failed attempt
+      const { data: newUserProfile, error: insertError } = await supabase
         .from('profiles')
-        .insert([
+        .upsert([
           {
             id: authStore.user.id,
             email: authStore.user.email,
@@ -204,24 +207,28 @@ onMounted(async () => {
             skill_level: null,
             avatar_url: authStore.user.user_metadata?.avatar_url || ''
           }
-        ])
+        ], { onConflict: 'id', ignoreDuplicates: true }) // ignoreDuplicates to not overwrite if exists
+        .select()
+        .single()
 
       if (insertError) throw insertError
 
-      // Load default values
-      profile.value = {
-        name: authStore.user.user_metadata?.name || 'User',
-        email: authStore.user.email || '',
-        skillLevel: '',
-        location: '',
-        bio: '',
-        availability: [],
-        avatar_url: authStore.user.user_metadata?.avatar_url || '',
-        age: null,
-        gender: ''
+      // If we inserted, use that data. If ignoreDuplicates triggered (visited row exists), fetch again.
+      if (newUserProfile) {
+         initProfile(newUserProfile)
+      } else {
+         // It existed, so fetch it again
+         const { data: existingData, error: retryError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authStore.user.id)
+            .single()
+            
+         if (retryError) throw retryError
+         if (existingData) initProfile(existingData)
       }
       
-      // New profile is always incomplete, force edit mode
+      // New/Incomplete profile -> force edit
       startEditing()
     }
   } catch (error) {
@@ -230,6 +237,20 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+function initProfile(data: any) {
+  profile.value = {
+    name: data.name || 'No name',
+    email: data.email || authStore.user?.email || '',
+    skillLevel: data.skill_level || '',
+    location: data.location || '',
+    bio: data.bio || '',
+    availability: data.availability ? (typeof data.availability === 'string' ? JSON.parse(data.availability) : data.availability) : [],
+    avatar_url: data.avatar_url || '',
+    age: data.age || null,
+    gender: data.gender || ''
+  }
+}
 </script>
 
 <template>
@@ -385,7 +406,7 @@ onMounted(async () => {
                   :rows="4"
                 />
                 <p v-else class="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {{ profile.bio || 'No bio yet.' }}
+                  {{ profile.bio || t('profile.no_bio') }}
                 </p>
               </div>
             </CardContent>

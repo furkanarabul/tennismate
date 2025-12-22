@@ -158,7 +158,8 @@
         },
         "errors": {
             "fill_required": "Please fill in all mandatory fields marked with *"
-        }
+        },
+        "no_bio": "No bio yet."
     },
     "profile_completion": {
         "title": "Complete Your Profile",
