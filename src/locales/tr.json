@@ -158,7 +158,8 @@
         },
         "errors": {
             "fill_required": "Lütfen * ile işaretli tüm zorunlu alanları doldurun"
-        }
+        },
+        "no_bio": "Henüz biyografi yok."
     },
     "profile_completion": {
         "title": "Profilini Tamamla",

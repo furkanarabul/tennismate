@@ -158,7 +158,8 @@
         },
         "errors": {
             "fill_required": "Bitte füllen Sie alle mit * markierten Pflichtfelder aus"
-        }
+        },
+        "no_bio": "Noch keine Bio."
     },
     "profile_completion": {
         "title": "Vervollständige dein Profil",
