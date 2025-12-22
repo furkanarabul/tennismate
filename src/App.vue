@@ -81,6 +81,14 @@ watch(() => authStore.user, async (user) => {
           <RouterLink to="/discover" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             {{ $t('app.nav.discover') }}
           </RouterLink>
+          <RouterLink 
+            v-if="authStore.user"
+            to="/community" 
+            class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Users class="h-4 w-4" />
+            Community
+          </RouterLink>
           <RouterLink to="/dashboard" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 relative">
             <ListTodo class="h-4 w-4" />
             {{ $t('app.nav.matches') }}
@@ -141,6 +149,16 @@ watch(() => authStore.user, async (user) => {
         >
           <Heart class="h-5 w-5" />
           <span class="text-xs font-medium">{{ $t('app.nav.discover') }}</span>
+        </RouterLink>
+
+        <RouterLink 
+          v-if="authStore.user"
+          to="/community"
+          class="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors"
+          :class="$route.path === '/community' ? 'text-primary' : 'text-muted-foreground'"
+        >
+          <Users class="h-5 w-5" />
+          <span class="text-xs font-medium">Community</span>
         </RouterLink>
         
         <RouterLink 
