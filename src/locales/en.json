@@ -60,6 +60,7 @@
             "home": "Home",
             "discover": "Discover",
             "matches": "Matches",
+            "community": "Community",
             "profile": "Profile"
         }
     },
@@ -300,5 +301,30 @@
         "received_title": "Match Proposal",
         "received_subtitle": "{name} wants to play a match with you!",
         "calendar_description": "Tennis match with {name} via TennisMate"
+    },
+    "community": {
+        "title": "Community",
+        "subtitle": "Connect with local players, share moments, and find matches.",
+        "no_posts": "No posts yet. Be the first to say hello!",
+        "unknown_user": "Unknown User",
+        "create_placeholder": "What's on your mind? Share with the community...",
+        "post_button": "Post",
+        "reply_button": "Reply",
+        "like_button": "Like",
+        "save": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "reply_placeholder": "Write your reply...",
+        "comment_placeholder": "Write a comment...",
+        "no_comments": "No comments yet.",
+        "replying_to": "Replying to",
+        "cannot_like_own": "You cannot like your own post",
+        "types": {
+            "general": "General",
+            "match_request": "Match Request",
+            "question": "Question"
+        },
+        "delete_post_confirm": "Are you sure you want to delete this post?"
     }
 }

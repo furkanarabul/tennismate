@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Send, Image as ImageIcon } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -7,10 +8,17 @@ import { Card, CardContent } from '@/components/ui/card'
 import Select from '@/components/ui/select/Select.vue'
 import { useCommunityStore } from '@/stores/community'
 
+const { t } = useI18n()
 const store = useCommunityStore()
 const content = ref('')
 const postType = ref<'general' | 'match_request' | 'question'>('general')
 const loading = ref(false)
+
+const typeOptions = computed(() => [
+  { value: 'general', label: t('community.types.general') },
+  { value: 'match_request', label: t('community.types.match_request') },
+  { value: 'question', label: t('community.types.question') }
+])
 
 const handleSubmit = async () => {
   if (!content.value.trim()) return
@@ -33,7 +41,7 @@ const handleSubmit = async () => {
     <CardContent class="p-4 space-y-4">
       <Textarea 
         v-model="content" 
-        placeholder="What's on your mind? Share with the community..." 
+        :placeholder="t('community.create_placeholder')"
         class="min-h-[100px] resize-none border-0 bg-secondary/30 focus-visible:ring-0 px-0 placeholder:text-muted-foreground/70"
       />
       
@@ -42,11 +50,7 @@ const handleSubmit = async () => {
         <div class="flex items-center gap-2">
           <Select 
             v-model="postType" 
-            :options="[
-              { value: 'general', label: 'General' },
-              { value: 'match_request', label: 'Match Request' },
-              { value: 'question', label: 'Question' }
-            ]"
+            :options="typeOptions"
             class="w-[140px] h-8 text-xs"
           />
 
@@ -62,9 +66,10 @@ const handleSubmit = async () => {
           class="gap-2"
         >
           <Send class="h-3.5 w-3.5" />
-          Post
+          {{ t('community.post_button') }}
         </Button>
       </div>
     </CardContent>
   </Card>
 </template>
+

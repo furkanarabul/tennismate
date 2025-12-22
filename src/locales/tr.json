@@ -60,6 +60,7 @@
             "home": "Ana Sayfa",
             "discover": "Keşfet",
             "matches": "Maçlar",
+            "community": "Topluluk",
             "profile": "Profil"
         }
     },
@@ -300,5 +301,30 @@
         "received_title": "Maç Teklifi",
         "received_subtitle": "{name} seninle maç yapmak istiyor!",
         "calendar_description": "TennisMate üzerinden {name} ile tenis maçı"
+    },
+    "community": {
+        "title": "Topluluk",
+        "subtitle": "Yerel oyuncularla bağlantı kur, anılarını paylaş ve maçlar bul.",
+        "no_posts": "Henüz gönderi yok. İlk merhaba diyen sen ol!",
+        "unknown_user": "Bilinmeyen Kullanıcı",
+        "create_placeholder": "Aklında ne var? Toplulukla paylaş...",
+        "post_button": "Paylaş",
+        "reply_button": "Yanıtla",
+        "like_button": "Beğen",
+        "save": "Kaydet",
+        "cancel": "İptal",
+        "edit": "Düzenle",
+        "delete": "Sil",
+        "reply_placeholder": "Yanıtını yaz...",
+        "comment_placeholder": "Bir yorum yaz...",
+        "no_comments": "Henüz yorum yok.",
+        "replying_to": "Yanıtlanan:",
+        "cannot_like_own": "Kendi gönderini beğenemezsin",
+        "types": {
+            "general": "Genel",
+            "match_request": "Maç İsteği",
+            "question": "Soru"
+        },
+        "delete_post_confirm": "Bu gönderiyi silmek istediğine emin misin?"
     }
 }

@@ -60,6 +60,7 @@
             "home": "Startseite",
             "discover": "Entdecken",
             "matches": "Matches",
+            "community": "Community",
             "profile": "Profil"
         }
     },
@@ -300,5 +301,30 @@
         "received_title": "Match-Vorschlag",
         "received_subtitle": "{name} möchte ein Match mit dir spielen!",
         "calendar_description": "Tennis-Match mit {name} via TennisMate"
+    },
+    "community": {
+        "title": "Community",
+        "subtitle": "Verbinde dich mit lokalen Spielern, teile Momente und finde Matches.",
+        "no_posts": "Noch keine Beiträge. Sei der Erste, der Hallo sagt!",
+        "unknown_user": "Unbekannter Benutzer",
+        "create_placeholder": "Was geht dir durch den Kopf? Teile es mit der Community...",
+        "post_button": "Posten",
+        "reply_button": "Antworten",
+        "like_button": "Gefällt mir",
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "edit": "Bearbeiten",
+        "delete": "Löschen",
+        "reply_placeholder": "Schreibe deine Antwort...",
+        "comment_placeholder": "Schreibe einen Kommentar...",
+        "no_comments": "Noch keine Kommentare.",
+        "replying_to": "Antwort an",
+        "cannot_like_own": "Du kannst deinen eigenen Beitrag nicht liken",
+        "types": {
+            "general": "Allgemein",
+            "match_request": "Match-Anfrage",
+            "question": "Frage"
+        },
+        "delete_post_confirm": "Bist du sicher, dass du diesen Beitrag löschen möchtest?"
     }
 }
