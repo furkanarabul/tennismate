@@ -306,6 +306,7 @@
     "community": {
         "title": "Topluluk",
         "subtitle": "Yerel oyuncularla bağlantı kur, anılarını paylaş ve maçlar bul.",
+        "back": "Topluluğa Dön",
         "no_posts": "Henüz gönderi yok. İlk merhaba diyen sen ol!",
         "unknown_user": "Bilinmeyen Kullanıcı",
         "create_placeholder": "Aklında ne var? Toplulukla paylaş...",
@@ -321,11 +322,20 @@
         "no_comments": "Henüz yorum yok.",
         "replying_to": "Yanıtlanan:",
         "cannot_like_own": "Kendi gönderini beğenemezsin",
-        "types": {
-            "general": "Genel",
-            "match_request": "Maç İsteği",
-            "question": "Soru"
-        },
-        "delete_post_confirm": "Bu gönderiyi silmek istediğine emin misin?"
+        "delete_post_confirm": "Bu gönderiyi silmek istediğine emin misin?",
+        "pagination": {
+            "posts_per_page": "Sayfa başına gönderi",
+            "prev": "Önceki",
+            "next": "Sonraki",
+            "page": "Sayfa"
+        }
+    },
+    "notifications": {
+        "title": "Bildirimler",
+        "empty": "Henüz bildirim yok",
+        "mark_all_read": "Tümünü okundu işaretle",
+        "liked_your_post": "gönderini beğendi",
+        "commented_on_post": "gönderine yorum yaptı",
+        "replied_to_comment": "yorumuna yanıt verdi"
     }
 }

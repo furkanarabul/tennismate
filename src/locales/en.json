@@ -306,6 +306,7 @@
     "community": {
         "title": "Community",
         "subtitle": "Connect with local players, share moments, and find matches.",
+        "back": "Back to Community",
         "no_posts": "No posts yet. Be the first to say hello!",
         "unknown_user": "Unknown User",
         "create_placeholder": "What's on your mind? Share with the community...",
@@ -321,11 +322,20 @@
         "no_comments": "No comments yet.",
         "replying_to": "Replying to",
         "cannot_like_own": "You cannot like your own post",
-        "types": {
-            "general": "General",
-            "match_request": "Match Request",
-            "question": "Question"
-        },
-        "delete_post_confirm": "Are you sure you want to delete this post?"
+        "delete_post_confirm": "Are you sure you want to delete this post?",
+        "pagination": {
+            "posts_per_page": "Posts per page",
+            "prev": "Previous",
+            "next": "Next",
+            "page": "Page"
+        }
+    },
+    "notifications": {
+        "title": "Notifications",
+        "empty": "No notifications yet",
+        "mark_all_read": "Mark all as read",
+        "liked_your_post": "liked your post",
+        "commented_on_post": "commented on your post",
+        "replied_to_comment": "replied to your comment"
     }
 }

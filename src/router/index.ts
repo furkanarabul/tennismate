@@ -37,7 +37,7 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/profile',
+      path: '/profile/:id?',
       name: 'profile',
       component: () => import('../views/ProfileView.vue'),
       meta: { requiresAuth: true }
@@ -46,6 +46,12 @@ const router = createRouter({
       path: '/community',
       name: 'community',
       component: () => import('../views/CommunityView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/community/post/:id',
+      name: 'community-post',
+      component: () => import('../views/CommunityPostView.vue'),
       meta: { requiresAuth: true }
     },
     {

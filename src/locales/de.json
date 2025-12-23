@@ -306,6 +306,7 @@
     "community": {
         "title": "Community",
         "subtitle": "Verbinde dich mit lokalen Spielern, teile Momente und finde Matches.",
+        "back": "Zurück zur Community",
         "no_posts": "Noch keine Beiträge. Sei der Erste, der Hallo sagt!",
         "unknown_user": "Unbekannter Benutzer",
         "create_placeholder": "Was geht dir durch den Kopf? Teile es mit der Community...",
@@ -321,11 +322,20 @@
         "no_comments": "Noch keine Kommentare.",
         "replying_to": "Antwort an",
         "cannot_like_own": "Du kannst deinen eigenen Beitrag nicht liken",
-        "types": {
-            "general": "Allgemein",
-            "match_request": "Match-Anfrage",
-            "question": "Frage"
-        },
-        "delete_post_confirm": "Bist du sicher, dass du diesen Beitrag löschen möchtest?"
+        "delete_post_confirm": "Bist du sicher, dass du diesen Beitrag löschen möchtest?",
+        "pagination": {
+            "posts_per_page": "Beiträge pro Seite",
+            "prev": "Vorherige",
+            "next": "Nächste",
+            "page": "Seite"
+        }
+    },
+    "notifications": {
+        "title": "Benachrichtigungen",
+        "empty": "Noch keine Benachrichtigungen",
+        "mark_all_read": "Alle als gelesen markieren",
+        "liked_your_post": "hat deinen Beitrag geliked",
+        "commented_on_post": "hat deinen Beitrag kommentiert",
+        "replied_to_comment": "hat auf deinen Kommentar geantwortet"
     }
 }
