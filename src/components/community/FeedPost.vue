@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatDistanceToNow } from 'date-fns'
 import { enUS, de, tr } from 'date-fns/locale'
@@ -13,9 +13,23 @@ import { useCommunityStore, type Post, type Comment } from '@/stores/community'
 import { useAuthStore } from '@/stores/auth'
 import { onClickOutside } from '@vueuse/core'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   post: Post
-}>()
+  initiallyExpanded?: boolean
+  highlightCommentId?: string
+}>(), {
+  initiallyExpanded: false,
+  highlightCommentId: ''
+})
+
+import { onMounted } from 'vue'
+
+onMounted(async () => {
+    if (props.initiallyExpanded) {
+        showComments.value = true
+        await loadComments()
+    }
+})
 
 const { t, locale } = useI18n()
 const store = useCommunityStore()
@@ -61,8 +75,10 @@ onClickOutside(menuRef, () => {
   showMenu.value = false
 })
 
-// Group comments into parents and children
 const rootComments = computed(() => {
+  // Dependency on commentsKey ensures re-evaluation when we force update
+  // eslint-disable-next-line no-unused-expressions
+  commentsKey.value 
   return comments.value.filter(c => !c.parent_id)
 })
 
@@ -165,21 +181,69 @@ const cancelReply = () => {
   replyContent.value = ''
 }
 
+// Key to force re-render list when items are modified
+const commentsKey = ref(0)
+
 const handleUpdateComment = async () => {
-  if (!editingCommentId.value || !editContent.value.trim()) return
+  // Explicit Alert for Debugging
+  alert('Update function started! ID: ' + editingCommentId.value) 
+  console.log('Update button clicked!') // Debug log 0
+  
+  if (!editingCommentId.value) {
+    console.error('No editing comment ID')
+    return
+  }
+  if (!editContent.value.trim()) {
+     console.error('Empty content')
+     return
+  }
 
   updatingComment.value = true
+  console.log('Attempting to update comment:', editingCommentId.value)
+
   try {
-    await store.updateComment(editingCommentId.value, editContent.value)
+    // 1. Find the local comment
+    const index = comments.value.findIndex(c => c.id === editingCommentId.value)
     
-    // Update local state
-    const comment = comments.value.find(c => c.id === editingCommentId.value)
-    if (comment) {
-      comment.content = editContent.value
+    if (index !== -1) {
+      console.log('Found comment at index:', index)
+      
+      // 2. Optimistic Update with forced reactivity
+      // Ensure we preserve all existing fields
+      const existing = comments.value[index]
+      
+      console.log('--- DEBUG START ---')
+      console.log('Modifying comment ID:', editingCommentId.value)
+      console.log('Old Content:', existing.content)
+      console.log('New Content:', editContent.value)
+      
+      const updatedComment = { ...existing, content: editContent.value } as any
+      comments.value.splice(index, 1, updatedComment)
+      
+      // Verify local modification
+      console.log('After splice check:', comments.value[index].content)
+      
+      // 3. Force re-render key
+      commentsKey.value++
+      console.log('Comments key incremented to:', commentsKey.value)
+      console.log('--- DEBUG END ---')
+      
+      // 4. Wait for DOM to acknowledge the change before closing edit mode
+      if (typeof nextTick === 'function') {
+         await nextTick()
+      }
+      
+      cancelEdit()
+      
+      // 5. Background sync
+      await store.updateComment(editingCommentId.value, editContent.value)
+    } else {
+      console.error('Comment not found in local state!')
     }
-    cancelEdit()
+    
   } catch (err) {
     console.error('Failed to update comment', err)
+    alert('Failed to update comment: ' + err)
   } finally {
     updatingComment.value = false
   }
@@ -236,30 +300,26 @@ const handleUpdatePost = async () => {
 </script>
 
 <template>
-  <Card class="mb-4 overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow duration-200">
+  <Card class="mb-4 overflow-hidden border shadow-sm">
     <CardHeader class="p-4 flex flex-row items-center gap-4 pb-2 relative">
-      <Avatar 
-        :src="post.profiles?.avatar_url" 
-        :fallback="post.profiles?.name?.charAt(0).toUpperCase() || 'U'"
-        class="h-10 w-10 border border-border" 
-      />
-      
-      <div class="flex-1">
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-sm">{{ post.profiles?.name || t('community.unknown_user') }}</h3>
-          <span class="text-xs text-muted-foreground">
-            {{ formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: dateLocale }) }}
-          </span>
+      <div 
+        class="flex flex-row items-center gap-4 flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+        @click="$router.push(`/profile/${post.user_id}`)"
+      >
+        <Avatar 
+          :src="post.profiles?.avatar_url" 
+          :fallback="post.profiles?.name?.charAt(0).toUpperCase() || 'U'"
+          class="h-10 w-10 border border-border" 
+        />
+        
+        <div class="flex-1">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-sm hover:underline">{{ post.profiles?.name || t('community.unknown_user') }}</h3>
+            <span class="text-xs text-muted-foreground">
+              {{ formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: dateLocale }) }}
+            </span>
+          </div>
         </div>
-        <p v-if="post.post_type !== 'general'" 
-           class="text-[10px] uppercase font-bold tracking-wider mt-0.5"
-           :class="{
-             'text-blue-500': post.post_type === 'match_request',
-             'text-amber-500': post.post_type === 'question'
-           }"
-        >
-          {{ t(`community.types.${post.post_type}`) }}
-        </p>
       </div>
 
       <!-- Action Menu -->
@@ -359,48 +419,80 @@ const handleUpdatePost = async () => {
         </div>
 
         <!-- Comments List -->
-        <div v-else class="space-y-4 mb-4">
+        <div v-else class="space-y-4 mb-4" :key="commentsKey">
           <div v-if="comments.length === 0" class="text-center py-2 text-xs text-muted-foreground">
             {{ t('community.no_comments') }}
           </div>
           
           <!-- Parent Comments Loop -->
-          <div v-for="comment in rootComments" :key="comment.id" class="flex gap-3 mb-4 last:mb-0">
-            <Avatar 
-              :src="comment.profiles?.avatar_url" 
-              :fallback="comment.profiles?.name?.charAt(0).toUpperCase() || 'U'"
-              class="h-8 w-8 border border-border flex-shrink-0 z-10 bg-background" 
-            />
-            <div class="flex-1 space-y-2">
-              
-              <!-- Content Block (Edit or View) -->
-              <div v-if="editingCommentId === comment.id" class="space-y-2">
-                 <Input 
-                    v-model="editContent" 
-                    class="h-8 text-xs" 
-                    @keyup.enter="handleUpdateComment"
-                    :disabled="updatingComment"
-                 />
-                 <div class="flex gap-2">
-                   <Button size="sm" variant="default" class="h-6 px-2 text-[10px]" @click="handleUpdateComment" :disabled="updatingComment">
-                      <Loader2 v-if="updatingComment" class="h-3 w-3 animate-spin mr-1" />
-                      {{ t('community.save') }}
-                   </Button>
-                   <Button size="sm" variant="ghost" class="h-6 px-2 text-[10px]" @click="cancelEdit" :disabled="updatingComment">
-                      {{ t('community.cancel') }}
-                   </Button>
-                 </div>
-              </div>
+          <div 
+            v-for="comment in rootComments" 
+            :key="comment.id" 
+            :id="'comment-' + comment.id"
+            class="flex gap-3 mb-4 last:mb-0 transition-colors duration-500 rounded-lg p-1 -m-1"
+            :class="{ 'bg-primary/10': highlightCommentId === comment.id }"
+          >
+            <div 
+              class="cursor-pointer transition-opacity hover:opacity-80 mt-0.5"
+               @click="$router.push(`/profile/${comment.user_id}`)"
+            >
+              <Avatar 
+                :src="comment.profiles?.avatar_url" 
+                :fallback="comment.profiles?.name?.charAt(0).toUpperCase() || 'U'"
+                class="h-8 w-8 border border-border flex-shrink-0 z-10 bg-background" 
+              />
+            </div>
+              <div class="flex-1 space-y-2">
 
-              <div v-else class="bg-muted/40 rounded-lg p-3 text-sm relative group">
-                <div class="flex items-center justify-between mb-1">
-                  <span class="font-semibold text-xs">{{ comment.profiles?.name || t('community.unknown_user') }}</span>
-                  <span class="text-[10px] text-muted-foreground">
-                    {{ formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: dateLocale }) }}
-                  </span>
+                  <!-- Debug Key -->
+                  <div class="text-[10px] text-red-500 font-mono mb-2" v-if="editingCommentId === comment.id">
+                    Debug Key: {{ commentsKey }}
+                  </div>
+
+                 <!-- Content Block (Edit or View) -->
+                <div v-if="editingCommentId === comment.id" class="space-y-2">
+                   <Textarea 
+                      v-model="editContent" 
+                      class="min-h-[60px] text-xs" 
+                      :disabled="updatingComment"
+                   />
+                   <div class="flex gap-2">
+                     <!-- NATIVE DEBUG BUTTON -->
+                     <button 
+                        class="bg-blue-600 text-white px-3 py-1 rounded text-xs z-50 relative"
+                        type="button"
+                        @click="handleUpdateComment"
+                     >
+                        DEBUG SAVE
+                     </button>
+                      
+                     <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        class="h-6 px-2 text-[10px]" 
+                        type="button" 
+                        @click.stop.prevent="cancelEdit" 
+                        :disabled="updatingComment"
+                     >
+                        {{ t('community.cancel') }}
+                     </Button>
+                   </div>
                 </div>
-                <p class="text-foreground/90 break-words">{{ comment.content }}</p>
-              </div>
+
+                <div v-else class="bg-muted/40 rounded-lg p-3 text-sm relative group">
+                  <div class="flex items-center justify-between mb-1">
+                    <span 
+                      class="font-semibold text-xs cursor-pointer hover:underline" 
+                      @click="$router.push(`/profile/${comment.user_id}`)"
+                    >
+                      {{ comment.profiles?.name || t('community.unknown_user') }}
+                    </span>
+                    <span class="text-[10px] text-muted-foreground">
+                      {{ formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: dateLocale }) }}
+                    </span>
+                  </div>
+                  <p class="text-foreground/90 break-words">{{ comment.content }}</p>
+                </div>
               
               <!-- Action Bar -->
               <div class="flex items-center gap-4 px-1">
@@ -479,33 +571,66 @@ const handleUpdatePost = async () => {
                   <!-- Thread Line -->
                   <div class="absolute left-[-11px] top-[-10px] bottom-4 w-px bg-border/40"></div>
                   
-                  <div v-for="reply in getReplies(comment.id)" :key="reply.id" class="flex gap-2 relative">
+                  <div 
+                    v-for="reply in getReplies(comment.id)" 
+                    :key="reply.id" 
+                    :id="'comment-' + reply.id"
+                    class="flex gap-2 relative transition-colors duration-500 rounded-lg p-1 -m-1"
+                    :class="{ 'bg-primary/10': highlightCommentId === reply.id }"
+                  >
                        <!-- Curve to reply -->
                        <div class="absolute left-[-19px] top-3 w-4 h-4 border-b border-l border-border/40 rounded-bl-lg"></div>
 
-                       <Avatar 
-                        :src="reply.profiles?.avatar_url" 
-                        :fallback="reply.profiles?.name?.charAt(0).toUpperCase() || 'U'"
-                        class="h-6 w-6 border border-border flex-shrink-0 mt-1 z-10 bg-background" 
-                      />
+                       <div 
+                        class="cursor-pointer transition-opacity hover:opacity-80 mt-1 z-10"
+                        @click="$router.push(`/profile/${reply.user_id}`)"
+                       >
+                         <Avatar 
+                          :src="reply.profiles?.avatar_url" 
+                          :fallback="reply.profiles?.name?.charAt(0).toUpperCase() || 'U'"
+                          class="h-6 w-6 border border-border flex-shrink-0 bg-background" 
+                        />
+                       </div>
                       <div class="flex-1 space-y-1">
                           <!-- Reply Content/Edit -->
                           <div v-if="editingCommentId === reply.id" class="space-y-1">
-                             <Input 
+                             <Textarea 
                                 v-model="editContent" 
-                                class="h-7 text-xs" 
-                                @keyup.enter="handleUpdateComment"
+                                class="min-h-[60px] text-xs" 
                                 :disabled="updatingComment"
                              />
                              <div class="flex gap-2">
-                               <Button size="sm" variant="default" class="h-5 px-2 text-[10px]" @click="handleUpdateComment" :disabled="updatingComment">{{ t('community.save') }}</Button>
-                               <Button size="sm" variant="ghost" class="h-5 px-2 text-[10px]" @click="cancelEdit" :disabled="updatingComment">{{ t('community.cancel') }}</Button>
+                               <Button 
+                                  size="sm" 
+                                  variant="default" 
+                                  class="h-5 px-2 text-[10px]" 
+                                  type="button"
+                                  @click.stop.prevent="handleUpdateComment" 
+                                  :disabled="updatingComment"
+                                >
+                                  {{ t('community.save') }}
+                                </Button>
+                               <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  class="h-5 px-2 text-[10px]" 
+                                  type="button"
+                                  @click.stop.prevent="cancelEdit" 
+                                  :disabled="updatingComment"
+                                >
+                                  {{ t('community.cancel') }}
+                                </Button>
                              </div>
                           </div>
                           
                           <div v-else class="bg-muted/30 rounded-lg p-2 text-xs">
                              <div class="flex items-center justify-between mb-0.5">
-                                <span class="font-semibold text-xs">{{ reply.profiles?.name }}</span>
+                                <span 
+                                  class="font-semibold text-xs cursor-pointer hover:underline"
+                                  @click="$router.push(`/profile/${reply.user_id}`)"
+                                >
+                                  {{ reply.profiles?.name }}
+                                </span>
                                 <span class="text-[10px] text-muted-foreground">{{ formatDistanceToNow(new Date(reply.created_at), { addSuffix: true, locale: dateLocale }) }}</span>
                              </div>
                              <p class="text-foreground/90">{{ reply.content }}</p>

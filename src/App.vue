@@ -7,6 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 import ConsentBanner from '@/components/ConsentBanner.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import { detectIpLanguage } from '@/utils/language'
+import NotificationsDropdown from '@/components/notifications/NotificationsDropdown.vue'
 import { useNotificationStore } from '@/stores/notifications'
 import { useAuthStore } from '@/stores/auth'
 
@@ -92,9 +93,9 @@ watch(() => authStore.user, async (user) => {
           <RouterLink to="/dashboard" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 relative">
             <ListTodo class="h-4 w-4" />
             {{ $t('app.nav.matches') }}
-            <!-- Notification Badge -->
+            <!-- Notification Badge (Messages/Proposals) -->
             <span 
-              v-if="notificationStore.totalUnreadCount > 0" 
+              v-if="(notificationStore.totalUnreadCount - notificationStore.socialUnreadCount) > 0" 
               class="absolute -top-0.5 -right-1 flex h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background"
             ></span>
           </RouterLink>
@@ -104,6 +105,7 @@ watch(() => authStore.user, async (user) => {
           </RouterLink>
         </nav>
         <div class="flex items-center gap-2">
+          <NotificationsDropdown v-if="authStore.user" />
           <LanguageSwitcher />
           <ThemeToggle />
         </div>
@@ -119,6 +121,7 @@ watch(() => authStore.user, async (user) => {
         </RouterLink>
         
         <div class="absolute right-4 flex items-center gap-2">
+          <NotificationsDropdown v-if="authStore.user" />
           <LanguageSwitcher />
           <ThemeToggle />
         </div>

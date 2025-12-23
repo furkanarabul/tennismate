@@ -5,29 +5,20 @@ import { Send, Image as ImageIcon } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
-import Select from '@/components/ui/select/Select.vue'
 import { useCommunityStore } from '@/stores/community'
 
 const { t } = useI18n()
 const store = useCommunityStore()
 const content = ref('')
-const postType = ref<'general' | 'match_request' | 'question'>('general')
 const loading = ref(false)
-
-const typeOptions = computed(() => [
-  { value: 'general', label: t('community.types.general') },
-  { value: 'match_request', label: t('community.types.match_request') },
-  { value: 'question', label: t('community.types.question') }
-])
 
 const handleSubmit = async () => {
   if (!content.value.trim()) return
 
   loading.value = true
   try {
-    await store.createPost(content.value, postType.value)
+    await store.createPost(content.value)
     content.value = ''
-    postType.value = 'general'
   } catch (err) {
     console.error('Failed to post', err)
   } finally {
@@ -37,7 +28,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <Card class="border-none shadow-sm mb-6">
+  <Card class="border shadow-sm mb-6">
     <CardContent class="p-4 space-y-4">
       <Textarea 
         v-model="content" 
@@ -48,12 +39,6 @@ const handleSubmit = async () => {
       
       <div class="flex items-center justify-between pt-2 border-t border-border/50">
         <div class="flex items-center gap-2">
-          <Select 
-            v-model="postType" 
-            :options="typeOptions"
-            class="w-[140px] h-8 text-xs"
-          />
-
           <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground" disabled>
             <ImageIcon class="h-4 w-4" />
           </Button>

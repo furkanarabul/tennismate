@@ -40,6 +40,10 @@ export const useCommunityStore = defineStore('community', () => {
     const posts = ref<Post[]>([])
     const loading = ref(false)
     const error = ref<string | null>(null)
+    const page = ref(0)
+    const limit = ref(10)
+    const totalPosts = ref(0)
+    const hasMore = ref(true)
 
     const fetchPosts = async () => {
         loading.value = true
@@ -48,17 +52,23 @@ export const useCommunityStore = defineStore('community', () => {
             const authStore = useAuthStore()
             const userId = authStore.user?.id
 
-            const { data, error: err } = await supabase
+            const start = page.value * limit.value
+            const end = start + limit.value - 1
+
+            const { data, count, error: err } = await supabase
                 .from('posts')
                 .select(`
           *,
           profiles:user_id (name, avatar_url),
           likes:post_likes (user_id),
           comments:post_comments (count)
-        `)
+        `, { count: 'exact' })
                 .order('created_at', { ascending: false })
+                .range(start, end)
 
             if (err) throw err
+
+            if (count !== null) totalPosts.value = count
 
             posts.value = data.map((post: any) => ({
                 ...post,
@@ -66,6 +76,9 @@ export const useCommunityStore = defineStore('community', () => {
                 comments_count: post.comments?.[0]?.count || 0,
                 user_has_liked: userId ? post.likes?.some((like: any) => like.user_id === userId) : false
             }))
+
+            hasMore.value = (page.value + 1) * limit.value < totalPosts.value
+
         } catch (err: any) {
             console.error('Error fetching posts:', err)
             error.value = err.message
@@ -74,7 +87,7 @@ export const useCommunityStore = defineStore('community', () => {
         }
     }
 
-    const createPost = async (content: string, type: 'general' | 'match_request' | 'question' = 'general') => {
+    const createPost = async (content: string) => {
         try {
             const authStore = useAuthStore()
             if (!authStore.user) throw new Error('User not authenticated')
@@ -84,7 +97,7 @@ export const useCommunityStore = defineStore('community', () => {
                 .insert({
                     user_id: authStore.user.id,
                     content,
-                    post_type: type
+                    post_type: 'general'
                 })
                 .select(`
           *,
@@ -155,6 +168,10 @@ export const useCommunityStore = defineStore('community', () => {
         posts,
         loading,
         error,
+        page,
+        limit,
+        totalPosts,
+        hasMore,
         fetchPosts,
         createPost,
         toggleLike,
@@ -286,12 +303,35 @@ export const useCommunityStore = defineStore('community', () => {
 
     async function updateComment(commentId: string, content: string) {
         try {
+            const authStore = useAuthStore()
+            const userId = authStore.user?.id
+
             const { error } = await supabase
                 .from('post_comments')
                 .update({ content })
                 .eq('id', commentId)
 
             if (error) throw error
+
+            // Fetch the updated comment with all relations to ensure UI has latest state
+            const { data, error: fetchError } = await supabase
+                .from('post_comments')
+                .select(`
+                    *,
+                    profiles:user_id (name, avatar_url),
+                    likes:comment_likes (user_id)
+                `)
+                .eq('id', commentId)
+                .single()
+
+            if (fetchError) throw fetchError
+
+            // Format it like we do in fetchComments
+            return {
+                ...data,
+                likes_count: data.likes?.length || 0,
+                user_has_liked: userId ? data.likes?.some((like: any) => like.user_id === userId) : false
+            } as Comment
         } catch (err) {
             console.error('Error updating comment:', err)
             throw err

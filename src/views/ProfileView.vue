@@ -13,10 +13,12 @@ import { supabase } from '@/lib/supabase'
 import AvailabilityPicker from '@/components/AvailabilityPicker.vue'
 import AvatarUpload from '@/components/AvatarUpload.vue'
 
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 const { t } = useI18n()
 const loading = ref(true)
 const saving = ref(false)
@@ -43,6 +45,12 @@ const formData = ref({
   avatar_url: '',
   age: null as number | null,
   gender: ''
+})
+
+const isOwnProfile = computed(() => {
+    const paramId = route.params.id as string
+    if (!paramId) return true
+    return authStore.user?.id === paramId
 })
 
 const skillLevelOptions = computed(() => [
@@ -74,6 +82,9 @@ const getGenderLabel = (value: string) => {
 const maskedEmail = computed(() => {
   const email = profile.value.email
   if (!email) return ''
+  // Don't show email for other users if not needed, or mask heavily
+  if (!isOwnProfile.value) return '' // Or return empty string if we want to hide email completely for others
+  
   const [username, domain] = email.split('@')
   if (!username || !domain) return email
   return `${username[0]}***@${domain}`
@@ -91,6 +102,7 @@ const handleLogout = async () => {
 }
 
 const startEditing = () => {
+  if (!isOwnProfile.value) return
   // Copy current values to form
   formData.value = {
     skillLevel: profile.value.skillLevel,
@@ -163,10 +175,13 @@ onMounted(async () => {
     return
   }
 
+  // Determine which user ID to fetch
+  const targetUserId = (route.params.id as string) || authStore.user.id
+
   loading.value = true
   
-  // Use cached profile from store if available
-  if (authStore.profile) {
+  // Use cached profile from store if available AND it's own profile
+  if (isOwnProfile.value && authStore.profile) {
     initProfile(authStore.profile)
     loading.value = false
     
@@ -178,10 +193,12 @@ onMounted(async () => {
   }
   
   try {
+    // If it's another user, we just fetch from public profiles
+    // Note: RLS policies must allow reading profiles (usually true for authenticated users)
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', authStore.user.id)
+      .eq('id', targetUserId)
       .maybeSingle()
 
     if (error) throw error
@@ -189,47 +206,48 @@ onMounted(async () => {
     if (data) {
       initProfile(data)
       
-      // If profile is incomplete, force edit mode
-      if (!authStore.isProfileComplete) {
+      // If own profile is incomplete, force edit mode
+      if (isOwnProfile.value && !authStore.isProfileComplete) {
         startEditing()
       }
     } else {
-      // Profile doesn't exist, try to create it
-      // Use upsert to handle race conditions where profile might have been created
-      // just now by another process/tab or previous failed attempt
-      const { data: newUserProfile, error: insertError } = await supabase
-        .from('profiles')
-        .upsert([
-          {
-            id: authStore.user.id,
-            email: authStore.user.email,
-            name: authStore.user.user_metadata?.name || 'User',
-            skill_level: null,
-            avatar_url: authStore.user.user_metadata?.avatar_url || ''
-          }
-        ], { onConflict: 'id', ignoreDuplicates: true }) // ignoreDuplicates to not overwrite if exists
-        .select()
-        .single()
-
-      if (insertError) throw insertError
-
-      // If we inserted, use that data. If ignoreDuplicates triggered (visited row exists), fetch again.
-      if (newUserProfile) {
-         initProfile(newUserProfile)
-      } else {
-         // It existed, so fetch it again
-         const { data: existingData, error: retryError } = await supabase
+      if (isOwnProfile.value) {
+        // Profile doesn't exist for SELF, try to create it
+        const { data: newUserProfile, error: insertError } = await supabase
             .from('profiles')
-            .select('*')
-            .eq('id', authStore.user.id)
+            .upsert([
+            {
+                id: authStore.user.id,
+                email: authStore.user.email,
+                name: authStore.user.user_metadata?.name || 'User',
+                skill_level: null,
+                avatar_url: authStore.user.user_metadata?.avatar_url || ''
+            }
+            ], { onConflict: 'id', ignoreDuplicates: true }) 
+            .select()
             .single()
-            
-         if (retryError) throw retryError
-         if (existingData) initProfile(existingData)
+
+        if (insertError) throw insertError
+
+        if (newUserProfile) {
+            initProfile(newUserProfile)
+        } else {
+            const { data: existingData, error: retryError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', authStore.user.id)
+                .single()
+                
+            if (retryError) throw retryError
+            if (existingData) initProfile(existingData)
+        }
+        
+        startEditing()
+      } else {
+          // Profile not found for another user
+           alert('User not found')
+           router.push('/community')
       }
-      
-      // New/Incomplete profile -> force edit
-      startEditing()
     }
   } catch (error) {
     console.error('Error loading profile:', error)
@@ -259,10 +277,10 @@ function initProfile(data: any) {
       <!-- Header -->
       <div class="mb-8 flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-bold">{{ t('profile.title') }}</h1>
+          <h1 class="text-3xl font-bold">{{ isOwnProfile ? t('profile.title') : t('profile.view_mode') }}</h1>
           <p class="text-muted-foreground">{{ t('profile.subtitle') }}</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2" v-if="isOwnProfile">
           <template v-if="!isEditing">
             <Button @click="startEditing" variant="outline" class="gap-2">
               <Edit2 class="h-4 w-4" />
