@@ -17,17 +17,41 @@ const props = withDefaults(defineProps<{
   post: Post
   initiallyExpanded?: boolean
   highlightCommentId?: string
+  highlightPost?: boolean
 }>(), {
   initiallyExpanded: false,
-  highlightCommentId: ''
+  highlightCommentId: '',
+  highlightPost: false
 })
 
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
+
+const isHighlighted = ref(false)
+
+const triggerHighlight = () => {
+    console.log('Triggering highlight animation')
+    isHighlighted.value = true
+    setTimeout(() => {
+        isHighlighted.value = false
+    }, 3000) // Increase to 3s
+}
 
 onMounted(async () => {
     if (props.initiallyExpanded) {
         showComments.value = true
         await loadComments()
+    }
+    
+    console.log('FeedPost mounted. highlightPost prop:', props.highlightPost)
+    if (props.highlightPost) {
+        triggerHighlight()
+    }
+})
+
+watch(() => props.highlightPost, (newVal) => {
+    console.log('highlightPost prop changed:', newVal)
+    if (newVal) {
+        triggerHighlight()
     }
 })
 
@@ -62,7 +86,8 @@ const editContent = ref('')
 const updatingComment = ref(false)
 
 // Reply state
-const replyingToId = ref<string | null>(null)
+const replyingToId = ref<string | null>(null) // The comment ID we're replying under (for UI)
+const replyingToParentId = ref<string | null>(null) // The actual parent_id to use in DB
 const replyingToUser = ref<string | null>(null)
 const replyContent = ref('')
 const submittingReply = ref(false)
@@ -76,9 +101,6 @@ onClickOutside(menuRef, () => {
 })
 
 const rootComments = computed(() => {
-  // Dependency on commentsKey ensures re-evaluation when we force update
-  // eslint-disable-next-line no-unused-expressions
-  commentsKey.value 
   return comments.value.filter(c => !c.parent_id)
 })
 
@@ -88,7 +110,7 @@ const getReplies = (parentId: string) => {
 
 const handleLike = () => {
   if (isOwnPost.value) return
-  store.toggleLike(props.post.id)
+  store.toggleLike(props.post.id, props.post)
 }
 
 const toggleComments = async () => {
@@ -129,16 +151,17 @@ const handleAddComment = async () => {
 }
 
 // Add reply
-const handleReply = async (parentId: string) => {
-  if (!replyContent.value.trim()) return
+const handleReply = async () => {
+  if (!replyContent.value.trim() || !replyingToParentId.value) return
 
   submittingReply.value = true
   try {
-    const comment = await store.createComment(props.post.id, replyContent.value, parentId)
+    const comment = await store.createComment(props.post.id, replyContent.value, replyingToParentId.value)
     if (comment) {
       comments.value.push(comment)
       replyContent.value = ''
       replyingToId.value = null
+      replyingToParentId.value = null
       replyingToUser.value = null
     }
   } catch (err) {
@@ -163,11 +186,22 @@ const startEditComment = (comment: Comment) => {
   replyingToId.value = null // Cancel reply if editing
 }
 
-const startReply = (comment: Comment) => {
-  replyingToId.value = comment.id
-  replyingToUser.value = comment.profiles?.name || t('community.unknown_user')
-  editingCommentId.value = null // Cancel edit if replying
+const startReply = (comment: Comment, isReplyToReply: boolean = false) => {
+  const userName = comment.profiles?.name || t('community.unknown_user')
+  
+  if (isReplyToReply && comment.parent_id) {
+    // Replying to a reply - use the original parent
+    replyingToId.value = comment.parent_id
+    replyingToParentId.value = comment.parent_id
+  } else {
+    // Replying to a top-level comment
+    replyingToId.value = comment.id
+    replyingToParentId.value = comment.id
+  }
+  
   replyContent.value = ''
+  replyingToUser.value = userName
+  editingCommentId.value = null // Cancel edit if replying
 }
 
 const cancelEdit = () => {
@@ -177,73 +211,27 @@ const cancelEdit = () => {
 
 const cancelReply = () => {
   replyingToId.value = null
+  replyingToParentId.value = null
   replyingToUser.value = null
   replyContent.value = ''
 }
 
-// Key to force re-render list when items are modified
-const commentsKey = ref(0)
-
 const handleUpdateComment = async () => {
-  // Explicit Alert for Debugging
-  alert('Update function started! ID: ' + editingCommentId.value) 
-  console.log('Update button clicked!') // Debug log 0
-  
-  if (!editingCommentId.value) {
-    console.error('No editing comment ID')
-    return
-  }
-  if (!editContent.value.trim()) {
-     console.error('Empty content')
-     return
-  }
+  if (!editingCommentId.value || !editContent.value.trim()) return
 
   updatingComment.value = true
-  console.log('Attempting to update comment:', editingCommentId.value)
-
   try {
-    // 1. Find the local comment
-    const index = comments.value.findIndex(c => c.id === editingCommentId.value)
+    await store.updateComment(editingCommentId.value, editContent.value)
     
-    if (index !== -1) {
-      console.log('Found comment at index:', index)
-      
-      // 2. Optimistic Update with forced reactivity
-      // Ensure we preserve all existing fields
-      const existing = comments.value[index]
-      
-      console.log('--- DEBUG START ---')
-      console.log('Modifying comment ID:', editingCommentId.value)
-      console.log('Old Content:', existing.content)
-      console.log('New Content:', editContent.value)
-      
-      const updatedComment = { ...existing, content: editContent.value } as any
-      comments.value.splice(index, 1, updatedComment)
-      
-      // Verify local modification
-      console.log('After splice check:', comments.value[index].content)
-      
-      // 3. Force re-render key
-      commentsKey.value++
-      console.log('Comments key incremented to:', commentsKey.value)
-      console.log('--- DEBUG END ---')
-      
-      // 4. Wait for DOM to acknowledge the change before closing edit mode
-      if (typeof nextTick === 'function') {
-         await nextTick()
-      }
-      
-      cancelEdit()
-      
-      // 5. Background sync
-      await store.updateComment(editingCommentId.value, editContent.value)
-    } else {
-      console.error('Comment not found in local state!')
+    // Simple update local state
+    const comment = comments.value.find(c => c.id === editingCommentId.value)
+    if (comment) {
+      comment.content = editContent.value
     }
     
+    cancelEdit()
   } catch (err) {
     console.error('Failed to update comment', err)
-    alert('Failed to update comment: ' + err)
   } finally {
     updatingComment.value = false
   }
@@ -300,7 +288,10 @@ const handleUpdatePost = async () => {
 </script>
 
 <template>
-  <Card class="mb-4 overflow-hidden border shadow-sm">
+  <Card 
+    class="mb-4 overflow-hidden border shadow-sm transition-all duration-1000"
+    :class="{ 'border-primary bg-primary/5': isHighlighted, 'border-border': !isHighlighted }"
+  >
     <CardHeader class="p-4 flex flex-row items-center gap-4 pb-2 relative">
       <div 
         class="flex flex-row items-center gap-4 flex-1 cursor-pointer hover:opacity-80 transition-opacity"
@@ -419,7 +410,7 @@ const handleUpdatePost = async () => {
         </div>
 
         <!-- Comments List -->
-        <div v-else class="space-y-4 mb-4" :key="commentsKey">
+        <div v-else class="space-y-4 mb-4">
           <div v-if="comments.length === 0" class="text-center py-2 text-xs text-muted-foreground">
             {{ t('community.no_comments') }}
           </div>
@@ -444,11 +435,6 @@ const handleUpdatePost = async () => {
             </div>
               <div class="flex-1 space-y-2">
 
-                  <!-- Debug Key -->
-                  <div class="text-[10px] text-red-500 font-mono mb-2" v-if="editingCommentId === comment.id">
-                    Debug Key: {{ commentsKey }}
-                  </div>
-
                  <!-- Content Block (Edit or View) -->
                 <div v-if="editingCommentId === comment.id" class="space-y-2">
                    <Textarea 
@@ -457,15 +443,17 @@ const handleUpdatePost = async () => {
                       :disabled="updatingComment"
                    />
                    <div class="flex gap-2">
-                     <!-- NATIVE DEBUG BUTTON -->
-                     <button 
-                        class="bg-blue-600 text-white px-3 py-1 rounded text-xs z-50 relative"
+                     <Button 
+                        size="sm" 
+                        variant="default" 
+                        class="h-6 px-2 text-[10px]" 
                         type="button"
-                        @click="handleUpdateComment"
+                        @click.stop.prevent="handleUpdateComment" 
+                        :disabled="updatingComment"
                      >
-                        DEBUG SAVE
-                     </button>
-                      
+                        <Loader2 v-if="updatingComment" class="h-3 w-3 animate-spin mr-1" />
+                        {{ t('community.save') }}
+                     </Button>
                      <Button 
                         size="sm" 
                         variant="ghost" 
@@ -537,33 +525,6 @@ const handleUpdatePost = async () => {
                       {{ t('community.delete') }}
                     </button>
                   </template>
-              </div>
-
-              <!-- Reply Input Area -->
-              <div v-if="replyingToId === comment.id" class="mt-2 pl-2 border-l-2 border-primary/20 animate-in slide-in-from-left-2 duration-300">
-                  <div class="flex items-center justify-between mb-1.5 px-1">
-                      <span class="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
-                        <CornerDownRight class="h-3 w-3" />
-                        {{ t('community.replying_to') }} <span class="text-primary font-semibold">@{{ replyingToUser }}</span>
-                      </span>
-                  </div>
-                  <div class="flex gap-2 items-center">
-                    <Input 
-                      v-model="replyContent"
-                      :placeholder="t('community.reply_placeholder')"
-                      class="h-8 text-xs bg-background"
-                      @keyup.enter="handleReply(comment.id)"
-                      :disabled="submittingReply"
-                      autoFocus
-                    />
-                    <Button size="sm" class="h-8 w-8 p-0 shrink-0" @click="handleReply(comment.id)" :disabled="!replyContent.trim() || submittingReply">
-                      <Loader2 v-if="submittingReply" class="h-3 w-3 animate-spin" />
-                      <Send v-else class="h-3 w-3" />
-                    </Button>
-                    <Button size="sm" variant="ghost" class="h-8 w-8 p-0 shrink-0 text-muted-foreground hover:text-foreground" @click="cancelReply">
-                      <X class="h-3 w-3" />
-                    </Button>
-                  </div>
               </div>
 
               <!-- Nested Replies -->
@@ -653,6 +614,14 @@ const handleUpdatePost = async () => {
                                 <span v-if="reply.likes_count" class="font-medium text-[9px]">{{ reply.likes_count }}</span>
                               </button>
                              
+                             <!-- Reply to Reply -->
+                             <button 
+                                @click="startReply(reply, true)"
+                                class="text-[10px] flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+                              >
+                                <Reply class="h-2.5 w-2.5" />
+                              </button>
+                             
                              <!-- Edit/Delete Reply -->
                               <template v-if="isOwnComment(reply.user_id) && editingCommentId !== reply.id">
                                 <button @click="startEditComment(reply)" class="text-[10px] text-muted-foreground hover:text-primary"><Edit2 class="h-2.5 w-2.5" /></button>
@@ -660,6 +629,33 @@ const handleUpdatePost = async () => {
                               </template>
                           </div>
                       </div>
+                  </div>
+              </div>
+
+              <!-- Reply Input Area - After all replies -->
+              <div v-if="replyingToId === comment.id" class="mt-2 pl-3 border-l-2 border-primary/20 animate-in slide-in-from-left-2 duration-300">
+                  <div class="flex items-center justify-between mb-1.5 px-1">
+                      <span class="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                        <CornerDownRight class="h-3 w-3" />
+                        {{ t('community.replying_to') }} <span class="text-primary font-semibold">@{{ replyingToUser }}</span>
+                      </span>
+                  </div>
+                  <div class="flex gap-2 items-center">
+                    <Input 
+                      v-model="replyContent"
+                      :placeholder="t('community.reply_placeholder')"
+                      class="h-8 text-xs bg-background"
+                      @keyup.enter="handleReply"
+                      :disabled="submittingReply"
+                      autoFocus
+                    />
+                    <Button size="sm" class="h-8 w-8 p-0 shrink-0" @click="handleReply" :disabled="!replyContent.trim() || submittingReply">
+                      <Loader2 v-if="submittingReply" class="h-3 w-3 animate-spin" />
+                      <Send v-else class="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="ghost" class="h-8 w-8 p-0 shrink-0 text-muted-foreground hover:text-foreground" @click="cancelReply">
+                      <X class="h-3 w-3" />
+                    </Button>
                   </div>
               </div>
 

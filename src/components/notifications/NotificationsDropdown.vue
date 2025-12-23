@@ -52,9 +52,15 @@ const handleNotificationClick = async (notification: Notification) => {
          // Assuming resource_id is post_id
          let routeQuery: any = {}
          if (notification.comment_id) {
+             console.log('Navigating to comment:', notification.comment_id)
              routeQuery.commentId = notification.comment_id
+         } else {
+             // If no comment ID (post like), highlight the post itself
+             console.log('Navigating to post highlight (no comment_id)')
+             routeQuery.highlight = 'true'
          }
          
+         console.log('Pushing route with query:', routeQuery)
          router.push({
              name: 'community-post',
              params: { id: notification.resource_id },
