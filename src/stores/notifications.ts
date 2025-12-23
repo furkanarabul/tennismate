@@ -138,6 +138,8 @@ export const useNotificationStore = defineStore('notifications', () => {
         }
     }
 
+    // ... (keep markAsRead etc)
+
     const markAsRead = async (notificationId: string) => {
         try {
             // Optimistic update
@@ -179,13 +181,29 @@ export const useNotificationStore = defineStore('notifications', () => {
         }
     }
 
+    const markMatchAsRead = (matchId: string) => {
+        // Optimistically update UI - only clears messages
+        if (matchUnreadCounts.value[matchId]) {
+            matchUnreadCounts.value[matchId] = 0
+        }
+    }
+
+    const channels = ref<any[]>([])
+
+    // ... (existing getters/actions)
+
     const subscribeToNotifications = () => {
         const authStore = useAuthStore()
         if (!authStore.user) return
 
-        // Subscribe to new messages
-        supabase
-            .channel('global-messages')
+        // Cleanup existing subscriptions first
+        cleanupSubscriptions()
+
+        console.log('Subscribing to Realtime channels for user:', authStore.user.id)
+
+        // 1. Messages Channel
+        const messageChannel = supabase
+            .channel(`messages:${authStore.user.id}`)
             .on(
                 'postgres_changes',
                 {
@@ -195,23 +213,22 @@ export const useNotificationStore = defineStore('notifications', () => {
                 },
                 async (payload) => {
                     const newMessage = payload.new as any
-                    // Check if this message belongs to one of our matches and wasn't sent by us
                     if (newMessage.sender_id !== authStore.user?.id) {
                         const currentCount = matchUnreadCounts.value[newMessage.match_id]
                         if (currentCount !== undefined) {
                             matchUnreadCounts.value[newMessage.match_id] = currentCount + 1
                         } else {
-                            // New match? or we just haven't loaded it. Refresh all.
                             await fetchUnreadCounts()
                         }
                     }
                 }
             )
             .subscribe()
+        channels.value.push(messageChannel)
 
-        // Subscribe to match proposals
-        supabase
-            .channel('global-proposals')
+        // 2. Proposals Channel
+        const proposalChannel = supabase
+            .channel(`proposals:${authStore.user.id}`)
             .on(
                 'postgres_changes',
                 {
@@ -227,10 +244,11 @@ export const useNotificationStore = defineStore('notifications', () => {
                 }
             )
             .subscribe()
+        channels.value.push(proposalChannel)
 
-        // Subscribe to social notifications
-        supabase
-            .channel('global-notifications')
+        // 3. Social Notifications Channel
+        const notificationChannel = supabase
+            .channel(`notifications:${authStore.user.id}`)
             .on(
                 'postgres_changes',
                 {
@@ -240,24 +258,33 @@ export const useNotificationStore = defineStore('notifications', () => {
                     filter: `user_id=eq.${authStore.user.id}`
                 },
                 async (payload) => {
-                    const newNotif = payload.new as any
+                    console.log('Realtime notification received:', payload)
                     socialUnreadCount.value++
-                    // Optionally fetch latest to update the list if open
                     await fetchNotifications()
                 }
             )
-            .subscribe()
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('Successfully subscribed to notifications channel')
+                }
+            })
+        channels.value.push(notificationChannel)
     }
 
-    const markMatchAsRead = (matchId: string) => {
-        // Optimistically update UI - only clears messages
-        if (matchUnreadCounts.value[matchId]) {
-            matchUnreadCounts.value[matchId] = 0
+    const cleanupSubscriptions = () => {
+        if (channels.value.length > 0) {
+            console.log('Cleaning up', channels.value.length, 'subscriptions')
+            channels.value.forEach(channel => supabase.removeChannel(channel))
+            channels.value = []
         }
     }
 
     const initialize = async () => {
         if (initialized.value) return
+
+        const authStore = useAuthStore()
+        if (!authStore.user) return
+
         await fetchUnreadCounts()
         await fetchNotifications()
         subscribeToNotifications()
@@ -265,6 +292,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     const reset = () => {
+        cleanupSubscriptions()
         matchUnreadCounts.value = {}
         proposalUnreadCounts.value = {}
         notifications.value = []

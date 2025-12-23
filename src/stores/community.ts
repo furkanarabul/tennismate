@@ -87,6 +87,50 @@ export const useCommunityStore = defineStore('community', () => {
         }
     }
 
+    const fetchPost = async (postId: string) => {
+        try {
+            const authStore = useAuthStore()
+            const userId = authStore.user?.id
+
+            // Check if we already have it in memory and it's fresh enough? 
+            // For now, let's always fetch to ensure we have latest likes/comments count
+            // unless we want to rely on the list.
+
+            const { data, error: err } = await supabase
+                .from('posts')
+                .select(`
+                  *,
+                  profiles:user_id (name, avatar_url),
+                  likes:post_likes (user_id),
+                  comments:post_comments (count)
+                `)
+                .eq('id', postId)
+                .single()
+
+            if (err) throw err
+
+            const formattedPost: Post = {
+                ...data,
+                likes_count: data.likes?.length || 0,
+                comments_count: data.comments?.[0]?.count || 0,
+                user_has_liked: userId ? data.likes?.some((like: any) => like.user_id === userId) : false
+            }
+
+            // Update or add to local posts array so changes (like toggleLike) reflect everywhere
+            const index = posts.value.findIndex(p => p.id === postId)
+            if (index !== -1) {
+                posts.value[index] = formattedPost
+            } else {
+                posts.value.push(formattedPost)
+            }
+
+            return formattedPost
+        } catch (err: any) {
+            console.error('Error fetching single post:', err)
+            throw err
+        }
+    }
+
     const createPost = async (content: string) => {
         try {
             const authStore = useAuthStore()
@@ -122,15 +166,18 @@ export const useCommunityStore = defineStore('community', () => {
         }
     }
 
-    const toggleLike = async (postId: string) => {
+    const toggleLike = async (postId: string, localPost?: Post) => {
         const authStore = useAuthStore()
         if (!authStore.user) return
 
+        // Find post in store OR use the local post passed in
         const postIndex = posts.value.findIndex(p => p.id === postId)
-        if (postIndex === -1) return
+        const post = postIndex !== -1 ? posts.value[postIndex] : localPost
 
-        const post = posts.value[postIndex]
-        if (!post) return
+        if (!post) {
+            console.error('toggleLike: Post not found in store and no local post provided')
+            return
+        }
 
         // Prevent self-like
         if (post.user_id === authStore.user.id) return
@@ -173,6 +220,7 @@ export const useCommunityStore = defineStore('community', () => {
         totalPosts,
         hasMore,
         fetchPosts,
+        fetchPost,
         createPost,
         toggleLike,
         fetchComments,

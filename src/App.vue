@@ -53,6 +53,9 @@ watch(() => authStore.user, async (user) => {
         router.push('/profile')
       }
     }
+  } else {
+    // User logged out
+    notificationStore.reset()
   }
 })
 </script>

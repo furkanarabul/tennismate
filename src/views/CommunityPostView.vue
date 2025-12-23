@@ -5,10 +5,11 @@ import { supabase } from '@/lib/supabase'
 import { ArrowLeft, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import FeedPost from '@/components/community/FeedPost.vue'
-import type { Post } from '@/stores/community'
+import { useCommunityStore, type Post } from '@/stores/community'
 
 const route = useRoute()
 const router = useRouter()
+const store = useCommunityStore()
 const post = ref<Post | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -19,59 +20,14 @@ const fetchPost = async () => {
 
   loading.value = true
   try {
-    const { data, error: err } = await supabase
-      .from('posts')
-      .select(`
-        *,
-        profiles:user_id (name, avatar_url)
-      `)
-      .eq('id', postId)
-      .single()
-
-    if (err) throw err
-
-    // Fetch integration details manually or reuse logic from store if available,
-    // but here we just need to ensure the FeedPost can render it.
-    // FeedPost expects a Post object which includes user_has_liked etc.
-    // We need to fetch those dynamic fields.
-    
-    // Actually, for simplicity, let's just fetch the raw post and then
-    // check 'post_likes' for current user.
-    const { data: likesData } = await supabase
-        .from('post_likes')
-        .select('created_at')
-        .eq('post_id', postId)
-    
-    // Check if current user liked it
-    const { data: userLike } = await supabase
-        .from('post_likes')
-        .select('post_id')
-        .eq('post_id', postId)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single()
-        
-    // Get comment count
-    const { count: commentCount } = await supabase
-        .from('post_comments')
-        .select('*', { count: 'exact', head: true })
-        .eq('post_id', postId)
-
-    const fullPost: Post = {
-        ...data,
-        likes_count: likesData?.length || 0,
-        comments_count: commentCount || 0,
-        user_has_liked: !!userLike
-    }
-    
-    post.value = fullPost
+    // Use store to fetch post so it's reactive with global state (likes, comments)
+    const fetchedPost = await store.fetchPost(postId)
+    post.value = fetchedPost
 
     // Handle deep linking to comment
     if (route.query.commentId) {
         await nextTick()
-        // We need to wait for FeedPost to mount and also potentially fetch comments if it does so lazily.
-        // FeedPost typically fetches comments only when expanded or always?
-        // Let's assume FeedPost handles fetching comments.
-        // We might need to pass a prop 'initialOpen' or similar to FeedPost.
+        // Wait for comments to likely be rendered
         scrollToComment(route.query.commentId as string)
     }
 
@@ -84,16 +40,29 @@ const fetchPost = async () => {
 }
 
 const scrollToComment = (commentId: string) => {
-    setTimeout(() => {
+    // Retry finding the element a few times since comments might load asynchronously
+    let attempts = 0
+    const tryScroll = () => {
         const el = document.getElementById(`comment-${commentId}`)
         if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            // Add a temporary flash effect if needed, but the prop should handle persistent highlight
+        } else if (attempts < 10) {
+            attempts++
+            setTimeout(tryScroll, 300)
         }
-    }, 1000) // Small delay to allow comments to load
+    }
+    tryScroll()
 }
 
 onMounted(() => {
+  console.log('CommunityPostView mounted. ID:', route.params.id, 'Query:', route.query)
   fetchPost()
+})
+
+import { watch } from 'vue'
+watch(() => route.query, (newQuery) => {
+    console.log('CommunityPostView query changed:', newQuery)
 })
 </script>
 
@@ -122,6 +91,7 @@ onMounted(() => {
         :post="post" 
         :initially-expanded="true"
         :highlight-comment-id="route.query.commentId as string"
+        :highlight-post="route.query.highlight === 'true'"
       />
     </div>
   </div>
