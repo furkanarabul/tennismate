@@ -28,7 +28,7 @@
 ## ✨ Features
 
 ### 🔍 Discover Players
-Tinder-style swipe interface to find tennis partners nearby. Filter by distance, skill level, and availability.
+Swipe-based interface to find tennis partners nearby. Filter by distance, skill level, and availability.
 
 ### 💬 Real-time Chat
 Instant messaging with your matches. Powered by Supabase Realtime for live updates.
@@ -47,9 +47,6 @@ Find players within your preferred distance using geolocation with smart fallbac
 
 ### 🌙 Dark Mode
 Beautiful dark theme support across the entire app.
-
-### 📱 PWA Ready
-Progressive Web App with offline support. Install on mobile for a native-like experience.
 
 ### 🌐 Multi-language
 Full internationalization support (English, German, Turkish).
