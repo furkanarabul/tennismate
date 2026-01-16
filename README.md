@@ -1,103 +1,136 @@
-# TennisMate
+<p align="center">
+  <img src="public/favicon.svg" alt="TennisMate Logo" width="80" height="80">
+</p>
 
-🎾 A modern web application for connecting tennis players and finding the perfect match.
+<h1 align="center">🎾 TennisMate</h1>
 
-## Tech Stack
+<p align="center">
+  <strong>A modern web app for connecting tennis players and finding the perfect match.</strong>
+</p>
 
-- **Vue 3** + **Vite** - Fast, modern frontend
-- **Tailwind CSS** - Utility-first styling
-- **Shadcn Vue** Style Components - Beautiful, accessible UI
-- **Supabase** - Backend-as-a-Service (authentication, database, real-time)
-- **TypeScript** - Type safety
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#screenshots">Screenshots</a> •
+  <a href="#architecture">Architecture</a>
+</p>
 
-## Features
+<p align="center">
+  <img src="https://img.shields.io/badge/Vue.js-3.5-4FC08D?style=flat-square&logo=vue.js" alt="Vue 3">
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind">
+  <img src="https://img.shields.io/badge/Supabase-Backend-3ECF8E?style=flat-square&logo=supabase" alt="Supabase">
+  <img src="https://img.shields.io/badge/Vite-7.1-646CFF?style=flat-square&logo=vite" alt="Vite">
+</p>
 
-- 🏠 **Landing Page** - Showcase features and attract users
-- 🔍 **Discover** - Swipe-style interface to find tennis partners
-- 📊 **Dashboard** - Manage matches and upcoming games
-- 👤 **Profile** - Create and edit your tennis profile
-- 🎨 **Modern UI** - Clean, responsive design with tennis-themed colors
-- 🌙 **Dark Mode** - Full dark mode support (toggle coming soon)
+---
 
-## Prerequisites
+## ✨ Features
 
-> **Important**: This project requires Node.js **20.19+** or **22.12+**
+### 🔍 Discover Players
+Tinder-style swipe interface to find tennis partners nearby. Filter by distance, skill level, and availability.
 
-Check your Node.js version:
-```bash
-node -v
-```
+### 💬 Real-time Chat
+Instant messaging with your matches. Powered by Supabase Realtime for live updates.
 
-To upgrade Node.js:
-```bash
-# Using Homebrew (macOS)
-brew install node@20
+### 📅 Match Proposals
+Schedule tennis matches with built-in proposal system. Accept, decline, or reschedule with ease.
 
-# Using nvm
-nvm install 20
-nvm use 20
-```
+### 👥 Community Feed
+Share posts, like and comment. Build connections with the tennis community.
 
-## Getting Started
+### 🔔 Smart Notifications
+Real-time notifications for likes, comments, replies, and new messages.
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+### 🌍 Location-Based
+Find players within your preferred distance using geolocation with smart fallbacks.
 
-2. **Configure environment** (optional):
-   ```bash
-   cp .env.example .env.local
-   # Add your Supabase credentials to .env.local
-   ```
+### 🌙 Dark Mode
+Beautiful dark theme support across the entire app.
 
-3. **Run development server**:
-   ```bash
-   npm run dev
-   ```
+### 📱 PWA Ready
+Progressive Web App with offline support. Install on mobile for a native-like experience.
 
-4. **Open in browser**:
-   ```
-   http://localhost:5173
-   ```
+### 🌐 Multi-language
+Full internationalization support (English, German, Turkish).
 
-## Project Structure
+---
+
+## 🛠 Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Frontend** | Vue 3, TypeScript, Vite |
+| **Styling** | Tailwind CSS, Shadcn/Vue |
+| **State** | Pinia |
+| **Backend** | Supabase (PostgreSQL, Auth, Realtime, Storage) |
+| **Animations** | GSAP |
+| **i18n** | Vue I18n |
+| **Testing** | Vitest, Playwright, Cypress |
+
+---
+
+## 🏗 Architecture
 
 ```
 src/
-├── components/ui/     # Reusable UI components
-├── views/             # Page components
-├── router/            # Vue Router configuration
-├── lib/               # Utilities and Supabase client
-└── assets/            # CSS and static assets
+├── components/          # 58 reusable UI components
+│   ├── ui/              # Base UI primitives (Button, Card, Input, etc.)
+│   ├── community/       # Feed, posts, comments
+│   └── notifications/   # Notification system
+├── composables/         # Vue composables for shared logic
+│   ├── useMatching.ts   # Swipe & match logic
+│   ├── useChat.ts       # Real-time messaging
+│   ├── useGeolocation.ts # Location services
+│   └── useMatchProposal.ts # Scheduling
+├── stores/              # Pinia state management
+│   ├── auth.ts          # Authentication state
+│   ├── community.ts     # Posts & comments
+│   └── notifications.ts # Real-time notifications
+├── views/               # 10 page components
+├── locales/             # i18n translations
+└── lib/                 # Supabase client & utilities
 ```
 
-## Available Scripts
+---
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run format` - Format code with Prettier
+## 📊 Database Schema
 
-## Supabase Setup
+The app uses Supabase with the following main tables:
 
-This project is configured to work with Supabase. To enable backend features:
+- **profiles** - User profiles with skill level, location, availability
+- **swipes** - Like/pass actions between users
+- **matches** - Mutual likes forming a match
+- **messages** - Real-time chat messages
+- **match_proposals** - Scheduled tennis games
+- **posts** - Community feed posts
+- **post_comments** - Nested comments with replies
+- **post_likes** / **comment_likes** - Social interactions
+- **notifications** - Real-time notification system
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Copy your project URL and anon key
-3. Add them to `.env.local`:
-   ```env
-   VITE_SUPABASE_URL=your-project-url
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   ```
+---
 
-See the implementation plan for database schema details.
+## 🎯 Key Highlights
 
-## Contributing
+- **60+ Vue Components** - Modular, reusable architecture
+- **5 Pinia Stores** - Centralized state management
+- **Real-time Features** - Live messaging & notifications via Supabase Realtime
+- **Responsive Design** - Mobile-first, works on all devices
+- **Type-Safe** - Full TypeScript implementation
+- **Automated Testing** - Unit, E2E, and component tests
 
-This is a personal project but suggestions are welcome!
+---
 
-## License
+## 👤 Author
 
-MIT
+**Furkan Arabul**
+
+- Portfolio: [furkanarabul.dev](https://furkanarabul.dev)
+- GitHub: [@furkanarabul](https://github.com/furkanarabul)
+- LinkedIn: [/in/furkanarabul](https://linkedin.com/in/furkanarabul)
+
+---
+
+<p align="center">
+  <sub>Built with ❤️ and lots of 🎾</sub>
+</p>
