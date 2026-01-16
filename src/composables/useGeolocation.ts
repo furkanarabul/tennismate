@@ -51,8 +51,6 @@ export function useGeolocation() {
         const timeout = retryLevel === 0 ? 10000 : 20000
         const maxAge = retryLevel === 0 ? 60000 : 0
 
-        console.log(`🗺️ Requesting location... (Attempt ${retryLevel + 1}, HighAccuracy: ${useHighAccuracy})`)
-
         try {
             const position = await new Promise<GeolocationPosition>((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition(
@@ -66,8 +64,6 @@ export function useGeolocation() {
                 )
             })
 
-            console.log('✅ Location received:', position.coords)
-
             coordinates.value = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
@@ -76,22 +72,14 @@ export function useGeolocation() {
 
             return coordinates.value
         } catch (err: any) {
-            console.error('❌ Location error details:', {
-                code: err.code,
-                message: err.message,
-                retryLevel
-            })
-
             // Retry logic
             // If Level 0 fails with Timeout(3) or Unavailable(2), try Level 1 (High Accuracy, Longer Timeout)
             if (retryLevel === 0 && (err.code === 2 || err.code === 3)) {
-                console.log('🔄 Retrying location with higher timeout...')
                 return getCurrentPosition(1)
             }
 
             // If Level 1 fails, try Level 2 (Low Accuracy / IP based) as last resort
             if (retryLevel === 1 && (err.code === 2 || err.code === 3)) {
-                console.log('🔄 Retrying location with low accuracy (IP-based fallback)...')
                 return getCurrentPosition(2)
             }
 
@@ -125,7 +113,6 @@ export function useGeolocation() {
             const result = await navigator.permissions.query({ name: 'geolocation' })
             return result.state
         } catch (err) {
-            console.error('Error checking permissions:', err)
             return null
         }
     }

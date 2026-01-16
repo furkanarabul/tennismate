@@ -77,7 +77,6 @@ const handleRegister = async () => {
       router.push('/profile')
     }
   } catch (e: any) {
-    console.error('Registration error:', e)
     error.value = e.message || 'Registration failed. Please try again.'
   } finally {
     loading.value = false

@@ -29,7 +29,6 @@ import { onMounted, watch } from 'vue'
 const isHighlighted = ref(false)
 
 const triggerHighlight = () => {
-    console.log('Triggering highlight animation')
     isHighlighted.value = true
     setTimeout(() => {
         isHighlighted.value = false
@@ -42,14 +41,12 @@ onMounted(async () => {
         await loadComments()
     }
     
-    console.log('FeedPost mounted. highlightPost prop:', props.highlightPost)
     if (props.highlightPost) {
         triggerHighlight()
     }
 })
 
 watch(() => props.highlightPost, (newVal) => {
-    console.log('highlightPost prop changed:', newVal)
     if (newVal) {
         triggerHighlight()
     }
@@ -126,7 +123,6 @@ const loadComments = async () => {
     const data = await store.fetchComments(props.post.id)
     comments.value = data || []
   } catch (err) {
-    console.error('Failed to load comments', err)
   } finally {
     loadingComments.value = false
   }
@@ -144,7 +140,6 @@ const handleAddComment = async () => {
       newComment.value = ''
     }
   } catch (err) {
-    console.error('Failed to add comment', err)
   } finally {
     submittingComment.value = false
   }
@@ -165,7 +160,6 @@ const handleReply = async () => {
       replyingToUser.value = null
     }
   } catch (err) {
-    console.error('Failed to add reply', err)
   } finally {
     submittingReply.value = false
   }
@@ -176,7 +170,6 @@ const handleDeleteComment = async (commentId: string) => {
     await store.deleteComment(commentId, props.post.id)
     comments.value = comments.value.filter(c => c.id !== commentId && c.parent_id !== commentId) // Remove children too locally if implied
   } catch (err) {
-    console.error('Failed to delete comment', err)
   }
 }
 
@@ -231,7 +224,6 @@ const handleUpdateComment = async () => {
     
     cancelEdit()
   } catch (err) {
-    console.error('Failed to update comment', err)
   } finally {
     updatingComment.value = false
   }
@@ -259,7 +251,6 @@ const handleDeletePost = async () => {
   try {
     await store.deletePost(props.post.id)
   } catch (err) {
-    console.error('Failed to delete post', err)
   }
 }
 
@@ -280,7 +271,6 @@ const handleUpdatePost = async () => {
     await store.updatePost(props.post.id, editPostContent.value)
     isEditingPost.value = false
   } catch (err) {
-    console.error('Failed to update post', err)
   } finally {
     updatingPost.value = false
   }

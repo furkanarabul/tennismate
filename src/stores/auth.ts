@@ -41,7 +41,6 @@ export const useAuthStore = defineStore('auth', () => {
                 await fetchProfile()
             }
         } catch (error) {
-            console.error('Auth initialization error:', error)
         } finally {
             loading.value = false
         }
@@ -103,7 +102,6 @@ export const useAuthStore = defineStore('auth', () => {
                 ])
 
             if (profileError) {
-                console.error('Profile creation error:', profileError)
             }
 
             user.value = data.user
@@ -118,9 +116,8 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             // Use 'local' scope instead of 'global' to avoid session issues
             const { error } = await supabase.auth.signOut({ scope: 'local' })
-            if (error) console.error('Logout API error:', error)
+            if (error) { }
         } catch (error) {
-            console.error('Logout exception:', error)
         } finally {
             // Always clear user state, even if API call fails
             user.value = null
@@ -146,7 +143,6 @@ export const useAuthStore = defineStore('auth', () => {
             if (error) throw error
             profile.value = data
         } catch (error) {
-            console.error('Error fetching profile:', error)
         }
     }
 

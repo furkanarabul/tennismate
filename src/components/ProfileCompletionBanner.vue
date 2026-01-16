@@ -26,7 +26,6 @@ const completionItems = computed(() => {
     try {
       availability = JSON.parse(availability)
     } catch (e) {
-      console.warn('Failed to parse availability:', e)
     }
   }
   

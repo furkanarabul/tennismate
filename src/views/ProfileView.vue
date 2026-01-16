@@ -96,7 +96,6 @@ const handleLogout = async () => {
     router.push('/login')
   } catch (error) {
     // Ignore session missing errors - just redirect to login
-    console.log('Logout completed (session may have already expired)')
     router.push('/login')
   }
 }
@@ -161,7 +160,6 @@ const saveProfile = async () => {
 
     isEditing.value = false
   } catch (error) {
-    console.error('Error saving profile:', error)
     alert('Failed to save profile. Please try again.')
   } finally {
     saving.value = false
@@ -250,7 +248,6 @@ onMounted(async () => {
       }
     }
   } catch (error) {
-    console.error('Error loading profile:', error)
   } finally {
     loading.value = false
   }

@@ -45,7 +45,6 @@ export async function detectIpLanguage() {
             setLanguage(detectedLang)
         }
     } catch (error) {
-        console.warn('IP language detection failed:', error)
     }
 }
 

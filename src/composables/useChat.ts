@@ -67,7 +67,6 @@ export const useChat = () => {
             return data
         } catch (e: any) {
             error.value = e.message
-            console.error('Error sending message:', e)
             return null
         }
     }
@@ -86,7 +85,6 @@ export const useChat = () => {
 
             return true
         } catch (e: any) {
-            console.error('Error marking message as read:', e)
             return false
         }
     }
@@ -152,7 +150,6 @@ export const useChat = () => {
 
             return count || 0
         } catch (e: any) {
-            console.error('Error getting unread count:', e)
             return 0
         }
     }
@@ -173,7 +170,6 @@ export const useChat = () => {
 
             return true
         } catch (e: any) {
-            console.error('Error marking match messages as read:', e)
             return false
         }
     }

@@ -166,7 +166,6 @@ const loadUsers = async () => {
     // applyFilters()
     
   } catch (error) {
-    console.error('Error loading users:', error)
   }
 }
 
@@ -273,7 +272,6 @@ const handleSwipeComplete = async (direction: 'left' | 'right') => {
       await swipeUser(authStore.user.id, currentPlayer.id, 'pass')
     }
   } catch (error) {
-    console.error('Swipe error:', error)
   } finally {
     // Remove swiped user from array
     players.value.splice(currentIndex.value, 1)
@@ -343,7 +341,6 @@ const requestLocation = async () => {
     } else {
        // If failed, but we have a saved location from DB, allow it!
        if (userLatitude.value != null && userLongitude.value != null) {
-         console.warn('⚠️ Live location failed, using saved DB location instead.')
          showLocationPrompt.value = false
          await loadUsers()
          return
@@ -351,20 +348,17 @@ const requestLocation = async () => {
 
        // Only show prompt if we truly have no location
        if (checkPermission) {
-         const status = await checkPermission()
-         console.log('📍 Permission status check:', status)
+          const status = await checkPermission()
        }
        showLocationPrompt.value = true
     }
   } catch (err: any) {
     // Similarly for unexpected errors
     if (userLatitude.value != null && userLongitude.value != null) {
-         console.warn('⚠️ Location error caught, using saved DB location.', err)
          showLocationPrompt.value = false
          return
     }
 
-    console.error('Unexpected location error:', err)
     showLocationPrompt.value = true
   }
 }
@@ -401,24 +395,14 @@ onMounted(async () => {
       if (profileData.latitude != null && profileData.longitude != null) {
         userLatitude.value = profileData.latitude
         userLongitude.value = profileData.longitude
-        console.log('✅ Using saved location from DB:', { 
-          lat: userLatitude.value, 
-          lng: userLongitude.value 
-        })
         // Load users with saved location initially
         await loadUsers()
       }
     }
   } catch (error: any) {
-    console.error('❌ Error loading profile:', {
-      message: error.message,
-      code: error.code,
-      details: error.details
-    })
   }
 
   // Always request fresh location from browser to ensure accuracy
-  console.log('📍 Requesting fresh location from browser...')
   await requestLocation()
 })
 

@@ -43,7 +43,6 @@ const handleLogin = async () => {
       try {
         await authStore.logout()
       } catch (logoutError) {
-        console.log('Session already cleared')
       }
       
       return

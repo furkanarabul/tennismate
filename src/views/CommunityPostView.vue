@@ -32,7 +32,6 @@ const fetchPost = async () => {
     }
 
   } catch (err: any) {
-    console.error('Error fetching post:', err)
     error.value = 'Failed to load post'
   } finally {
     loading.value = false
@@ -56,13 +55,11 @@ const scrollToComment = (commentId: string) => {
 }
 
 onMounted(() => {
-  console.log('CommunityPostView mounted. ID:', route.params.id, 'Query:', route.query)
   fetchPost()
 })
 
 import { watch } from 'vue'
-watch(() => route.query, (newQuery) => {
-    console.log('CommunityPostView query changed:', newQuery)
+watch(() => route.query, () => {
 })
 </script>
 

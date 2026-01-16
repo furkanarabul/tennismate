@@ -91,7 +91,6 @@ const uploadAvatar = async (file: File) => {
 
     emit('update:avatarUrl', data.publicUrl)
   } catch (error) {
-    console.error('Error uploading avatar:', error)
     alert('Failed to upload avatar. Please try again.')
     previewUrl.value = null
   } finally {

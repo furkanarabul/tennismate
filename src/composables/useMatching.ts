@@ -49,12 +49,8 @@ export const useMatching = () => {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         const distance = R * c
 
-        // Debug log
-        if (distance === 0 && lat1 !== lat2) {
-            console.log('📏 Distance calc:', { lat1, lon1, lat2, lon2, distance })
-        }
-
-        return Math.round(distance * 10) / 10 // Round to 1 decimal place
+        // Round to 1 decimal place
+        return Math.round(distance * 10) / 10
     }
 
     /**
@@ -123,7 +119,6 @@ export const useMatching = () => {
 
             // Calculate distances if user location is provided
             if (userLatitude != null && userLongitude != null) {
-                console.log('📍 Calculating distances for user at:', { userLatitude, userLongitude })
                 users = users.map(user => {
                     if (user.latitude != null && user.longitude != null) {
                         const distance = calculateDistance(
@@ -158,13 +153,6 @@ export const useMatching = () => {
 
             return users
         } catch (err: any) {
-            console.error('❌ Error fetching discover users:', {
-                message: err.message,
-                code: err.code,
-                details: err.details,
-                hint: err.hint,
-                params: { currentUserId, userLatitude, userLongitude, maxDistance }
-            })
             error.value = err.message || 'Failed to fetch users'
             return []
         } finally {
@@ -184,8 +172,6 @@ export const useMatching = () => {
         action: 'like' | 'pass'
     ): Promise<{ isMatch: boolean; matchId?: string }> => {
         try {
-            console.log('🎾 Swiping:', { currentUserId, targetUserId, action })
-
             const { error: swipeError } = await supabase
                 .from('swipes')
                 .insert([
@@ -197,24 +183,18 @@ export const useMatching = () => {
                 ])
 
             if (swipeError) {
-                console.error('❌ Swipe error:', swipeError)
                 throw swipeError
             }
 
-            console.log('✅ Swipe saved')
-
             // If like, check for match
             if (action === 'like') {
-                console.log('❤️ Checking for match...')
                 const matchId = await checkAndCreateMatch(currentUserId, targetUserId)
-                console.log('🎉 Match result:', matchId)
                 return { isMatch: !!matchId, matchId: matchId || undefined }
             }
 
             return { isMatch: false }
         } catch (e: any) {
             error.value = e.message
-            console.error('💥 Error in swipeUser:', e)
             return { isMatch: false }
         }
     }
@@ -227,8 +207,6 @@ export const useMatching = () => {
         targetUserId: string
     ): Promise<string | null> => {
         try {
-            console.log('🔍 Checking reciprocal like:', { from: targetUserId, to: currentUserId })
-
             // Check if target user liked current user
             const { data: reciprocalLike, error: queryError } = await supabase
                 .from('swipes')
@@ -238,20 +216,13 @@ export const useMatching = () => {
                 .eq('action', 'like')
                 .maybeSingle()
 
-            console.log('👀 Reciprocal like result:', { reciprocalLike, queryError })
-
             if (!reciprocalLike) {
-                console.log('❌ No reciprocal like found')
                 return null
             }
-
-            console.log('💚 Reciprocal like found! Creating match...')
 
             // It's a match! Create match record
             const user1 = currentUserId < targetUserId ? currentUserId : targetUserId
             const user2 = currentUserId < targetUserId ? targetUserId : currentUserId
-
-            console.log('📝 Creating match:', { user1, user2 })
 
             const { data: matchData, error: matchError } = await supabase
                 .from('matches')
@@ -265,7 +236,6 @@ export const useMatching = () => {
                 .single()
 
             if (matchError) {
-                console.error('⚠️ Match insert error:', matchError)
                 // Match might already exist, that's ok
                 if (matchError.code !== '23505') throw matchError
 
@@ -279,10 +249,8 @@ export const useMatching = () => {
                 return existingMatch?.id || null
             }
 
-            console.log('🎊 MATCH CREATED!', matchData)
             return matchData.id // Return the new match ID
         } catch (e: any) {
-            console.error('💥 Error checking match:', e)
             return null
         }
     }
@@ -345,18 +313,13 @@ export const useMatching = () => {
      */
     const unmatchUser = async (matchId: string, currentUserId: string, otherUserId: string): Promise<boolean> => {
         try {
-            console.log('💔 Unmatching users:', { matchId, currentUserId, otherUserId })
-
             // 1. Delete messages first (to avoid FK constraint issues if ON DELETE CASCADE is missing)
             const { error: messagesError } = await supabase
                 .from('messages')
                 .delete()
                 .eq('match_id', matchId)
 
-            if (messagesError) {
-                console.warn('⚠️ Error deleting messages (might be empty or RLS restricted):', messagesError)
-                // Continue anyway, as there might be no messages
-            }
+            // Continue anyway, as there might be no messages
 
             // 2. Delete the match record
             const { error: matchError } = await supabase
@@ -374,10 +337,8 @@ export const useMatching = () => {
 
             if (swipesError) throw swipesError
 
-            console.log('✅ Unmatch successful')
             return true
         } catch (e: any) {
-            console.error('💥 Error unmatching user:', e)
             error.value = e.message
             return false
         }

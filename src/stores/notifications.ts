@@ -110,7 +110,6 @@ export const useNotificationStore = defineStore('notifications', () => {
             socialUnreadCount.value = count || 0
 
         } catch (error) {
-            console.error('Error fetching unread counts:', error)
         } finally {
             loading.value = false
         }
@@ -134,7 +133,6 @@ export const useNotificationStore = defineStore('notifications', () => {
             if (error) throw error
             notifications.value = data as Notification[]
         } catch (err) {
-            console.error('Error fetching notifications:', err)
         }
     }
 
@@ -156,7 +154,6 @@ export const useNotificationStore = defineStore('notifications', () => {
 
             if (error) throw error
         } catch (err) {
-            console.error('Error marking notification as read:', err)
         }
     }
 
@@ -177,7 +174,6 @@ export const useNotificationStore = defineStore('notifications', () => {
 
             if (error) throw error
         } catch (err) {
-            console.error('Error marking all as read:', err)
         }
     }
 
@@ -198,8 +194,6 @@ export const useNotificationStore = defineStore('notifications', () => {
 
         // Cleanup existing subscriptions first
         cleanupSubscriptions()
-
-        console.log('Subscribing to Realtime channels for user:', authStore.user.id)
 
         // 1. Messages Channel
         const messageChannel = supabase
@@ -258,22 +252,16 @@ export const useNotificationStore = defineStore('notifications', () => {
                     filter: `user_id=eq.${authStore.user.id}`
                 },
                 async (payload) => {
-                    console.log('Realtime notification received:', payload)
                     socialUnreadCount.value++
                     await fetchNotifications()
                 }
             )
-            .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('Successfully subscribed to notifications channel')
-                }
-            })
+            .subscribe()
         channels.value.push(notificationChannel)
     }
 
     const cleanupSubscriptions = () => {
         if (channels.value.length > 0) {
-            console.log('Cleaning up', channels.value.length, 'subscriptions')
             channels.value.forEach(channel => supabase.removeChannel(channel))
             channels.value = []
         }

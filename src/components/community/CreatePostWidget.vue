@@ -20,7 +20,6 @@ const handleSubmit = async () => {
     await store.createPost(content.value)
     content.value = ''
   } catch (err) {
-    console.error('Failed to post', err)
   } finally {
     loading.value = false
   }

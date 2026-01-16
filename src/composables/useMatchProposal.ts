@@ -42,7 +42,6 @@ export const useMatchProposal = () => {
             if (err) throw err
             return data
         } catch (e: any) {
-            console.error('Error creating proposal:', e)
             error.value = e.message
             return null
         } finally {
@@ -67,7 +66,6 @@ export const useMatchProposal = () => {
             if (err) throw err
             return data
         } catch (e: any) {
-            console.error('Error responding to proposal:', e)
             error.value = e.message
             return null
         } finally {
@@ -88,7 +86,6 @@ export const useMatchProposal = () => {
             if (err) throw err
             return data as MatchProposal[]
         } catch (e: any) {
-            console.error('Error fetching proposals:', e)
             error.value = e.message
             return []
         } finally {
@@ -130,7 +127,6 @@ export const useMatchProposal = () => {
             if (err) throw err
             return data as MatchProposal[]
         } catch (e: any) {
-            console.error('Error fetching active proposals:', e)
             error.value = e.message
             return []
         } finally {

@@ -80,7 +80,6 @@ export const useCommunityStore = defineStore('community', () => {
             hasMore.value = (page.value + 1) * limit.value < totalPosts.value
 
         } catch (err: any) {
-            console.error('Error fetching posts:', err)
             error.value = err.message
         } finally {
             loading.value = false
@@ -126,7 +125,6 @@ export const useCommunityStore = defineStore('community', () => {
 
             return formattedPost
         } catch (err: any) {
-            console.error('Error fetching single post:', err)
             throw err
         }
     }
@@ -161,7 +159,6 @@ export const useCommunityStore = defineStore('community', () => {
 
             return data
         } catch (err: any) {
-            console.error('Error creating post:', err)
             throw err
         }
     }
@@ -175,7 +172,6 @@ export const useCommunityStore = defineStore('community', () => {
         const post = postIndex !== -1 ? posts.value[postIndex] : localPost
 
         if (!post) {
-            console.error('toggleLike: Post not found in store and no local post provided')
             return
         }
 
@@ -205,7 +201,6 @@ export const useCommunityStore = defineStore('community', () => {
             }
         } catch (err) {
             // Revert on error
-            console.error('Error toggling like:', err)
             post.user_has_liked = wasLiked
             post.likes_count = (post.likes_count || 0) + (wasLiked ? 1 : -1)
         }
@@ -243,7 +238,6 @@ export const useCommunityStore = defineStore('community', () => {
 
             posts.value = posts.value.filter(p => p.id !== postId)
         } catch (err) {
-            console.error('Error deleting post:', err)
             throw err
         }
     }
@@ -262,7 +256,6 @@ export const useCommunityStore = defineStore('community', () => {
                 post.content = content
             }
         } catch (err) {
-            console.error('Error updating post:', err)
             throw err
         }
     }
@@ -290,7 +283,6 @@ export const useCommunityStore = defineStore('community', () => {
                 user_has_liked: userId ? comment.likes?.some((like: any) => like.user_id === userId) : false
             })) as Comment[]
         } catch (err) {
-            console.error('Error fetching comments:', err)
             throw err
         }
     }
@@ -324,7 +316,6 @@ export const useCommunityStore = defineStore('community', () => {
 
             return data as Comment
         } catch (err) {
-            console.error('Error creating comment:', err)
             throw err
         }
     }
@@ -344,7 +335,6 @@ export const useCommunityStore = defineStore('community', () => {
                 post.comments_count = Math.max((post.comments_count || 0) - 1, 0)
             }
         } catch (err) {
-            console.error('Error deleting comment:', err)
             throw err
         }
     }
@@ -381,7 +371,6 @@ export const useCommunityStore = defineStore('community', () => {
                 user_has_liked: userId ? data.likes?.some((like: any) => like.user_id === userId) : false
             } as Comment
         } catch (err) {
-            console.error('Error updating comment:', err)
             throw err
         }
     }
@@ -391,7 +380,6 @@ export const useCommunityStore = defineStore('community', () => {
         if (!authStore.user) return
 
         if (comment.user_id === authStore.user.id) {
-            console.warn('Cannot like your own comment')
             return
         }
 
@@ -416,7 +404,6 @@ export const useCommunityStore = defineStore('community', () => {
                     })
             }
         } catch (err) {
-            console.error('Error toggling comment like:', err)
             // Revert
             comment.user_has_liked = wasLiked
             comment.likes_count = (comment.likes_count || 0) + (wasLiked ? 1 : -1)
