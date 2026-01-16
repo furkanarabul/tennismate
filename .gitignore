@@ -39,3 +39,6 @@ test-results/
 playwright-report/
 .env
 mobile/.env
+
+# SQL migration files
+*.sql
