@@ -91,22 +91,6 @@ src/
 
 ---
 
-## 📊 Database Schema
-
-The app uses Supabase with the following main tables:
-
-- **profiles** - User profiles with skill level, location, availability
-- **swipes** - Like/pass actions between users
-- **matches** - Mutual likes forming a match
-- **messages** - Real-time chat messages
-- **match_proposals** - Scheduled tennis games
-- **posts** - Community feed posts
-- **post_comments** - Nested comments with replies
-- **post_likes** / **comment_likes** - Social interactions
-- **notifications** - Real-time notification system
-
----
-
 ## 🎯 Key Highlights
 
 - **60+ Vue Components** - Modular, reusable architecture
