@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="public/favicon.svg" alt="TennisMate Logo" width="80" height="80">
-</p>
-
 <h1 align="center">🎾 TennisMate</h1>
 
 <p align="center">
